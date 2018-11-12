@@ -39,7 +39,11 @@ the third argument is the percentage of nonzero rows/columns to be filtered out 
 
 # Compiling
 `g++ -O3 -lm -o scale.a myScale.c scale1.c`
+
 alternatively I make a shared library by
+
 `g++ -O3 -shared -c -lm -o scale1.so scale1.c `
+
 and then 
+
 `g++ -O3 -o scale.a myScale.c scale1.so`
