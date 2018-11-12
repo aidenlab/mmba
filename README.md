@@ -17,9 +17,4 @@ I do not scale the bias vector to have mean/median of 1 but this is trivial to d
 Since all the values are integers I read them as such and then convert to double. This way reading in the matrix takes less time. Can be easily changed to read doubles.
 
 I ran this new program on the entire genome at 1 kb resolution. The entire process took 3675 seconds, 508 of which took reading in the matrix. It required 80 iterations.  When run on same data at 2 kb resolution (still 2.06 B non-zero entries) it took 1014 seconds, 434 of which were spent reading the matrix. It required only 22 iterations (removing only 2% of rows) - this is the reason for such a speed-up.
-
-As to working on matrix scaling, I would be delighted to do so. But for this I definitely need to do some reading first. And it will be good to know how you intend to use it. Of course all this will require a non-negligible time investment. Tomorrow I am going to talk to my boss (Stephen Turner, head of microbiology department at Monash University who is also running his immunology lab). He is quite open-minded and in principal supports these efforts but I am afraid that he will ask he/his lab gain if I spend part of my time working on these issues instead of lab projects (I am the only bioinformatician there).
-But in any case it is OK for your people to contact me concerning the code.
-
-As to testing, I did a very limited one. I compared my results (for smaller matrices) to those produced by juicer tools and by ICE python package and the correlation between bias vectors was above 0.995. But of course more testing is needed.
 ```
