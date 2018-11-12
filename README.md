@@ -1,4 +1,4 @@
-# mmba Moshe's Matrix Balancing Algorithm 
+# MMBA - Moshe's Matrix Balancing Algorithm 
 
 ```
 It is not a production quality one but rather a prototype. However I introduced one improvement. We are no longer limited to up to two matrices each with 2^31-1 non-zero entries. We may have as many of them as the RAM permits. Their number is determined automatically and all of them are treated automatically as well.
