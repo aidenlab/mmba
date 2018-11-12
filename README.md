@@ -47,3 +47,6 @@ alternatively I make a shared library by
 and then 
 
 `g++ -O3 -o scale.a myScale.c scale1.so`
+
+# Obsolete
+- `utesti.c`
