@@ -19,9 +19,10 @@ Since all the values are integers I read them as such and then convert to double
 
 I ran this new program on the entire genome at 1 kb resolution. The entire process took 3675 seconds, 508 of which took reading in the matrix. It required 80 iterations.  When run on same data at 2 kb resolution (still 2.06 B non-zero entries) it took 1014 seconds, 434 of which were spent reading the matrix. It required only 22 iterations (removing only 2% of rows) - this is the reason for such a speed-up.
 ```
+  
+  
 
-
-**# Scaling**
+# Scaling
 
 There are two C functions in two files: 
 - `myScale.c`: driver code which uses `scale1.c` 
