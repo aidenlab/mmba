@@ -55,9 +55,13 @@ int scale1(int m,int *i,int *j,double *x, double *z,double *b, double tol,double
 	for (p=0; p<k;p++) r0[p] = r[p];
 	qsort(r0,k,sizeof(double),cmpfunc);
 	n = 0;
-	while(r0[n] == 0) n++;
-	low = r0[n-1+(int)(((double)(k-n))*perc)];
-	high = r0[n-1+(int)(((double)(k-n))*(1.0-0.1*perc))];
+	for (p=0;p<k;p++) if (r0[p] == 0) n++;
+	int lind = n-1 + (int)(((double)(k-n))*perc+0.5);
+	int hind = n-1 + (int)(((double)(k-n))*(1.0-0.1*perc)+0.5);
+	if (lind < 0) lind = 0;
+	if (hind >= k) hind = k-1;
+	low = r0[lind];
+	high = r0[hind];
 	free(r0);
 
 //	find the "bad" rows and exclude them
