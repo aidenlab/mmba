@@ -21,7 +21,7 @@ I ran this new program on the entire genome at 1 kb resolution. The entire proce
 ```
 
 
-\b# Scaling\b
+# Scaling
 
 There are two C functions in two files: 
 - `myScale.c`: driver code which uses `scale1.c` 
