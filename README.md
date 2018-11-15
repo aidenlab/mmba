@@ -18,9 +18,7 @@ I do not scale the bias vector to have mean/median of 1 but this is trivial to d
 Since all the values are integers I read them as such and then convert to double. This way reading in the matrix takes less time. Can be easily changed to read doubles.
 
 I ran this new program on the entire genome at 1 kb resolution. The entire process took 3675 seconds, 508 of which took reading in the matrix. It required 80 iterations.  When run on same data at 2 kb resolution (still 2.06 B non-zero entries) it took 1014 seconds, 434 of which were spent reading the matrix. It required only 22 iterations (removing only 2% of rows) - this is the reason for such a speed-up.
-```
-  
-  
+    
 
 # Scaling
 
