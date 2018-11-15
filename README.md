@@ -1,6 +1,7 @@
 # MMBA - Moshe's Matrix Balancing Algorithm 
 
-```
+- `utesti.c`: at the moment a main function with hard-coded options; will be chenged to a proper function and driver routine. It allows to balance upper triangular sparse matrix of any size (as long as you have enough RAM), i.e. it lifts the limit of 2^31-1 on the number of non-zero elements. Will be adapted to do matrix scaling as well. Can do the entire genome at 1 kb resolution if sufficiently large percentage of "low" rows is excluded.
+
 It is not a production quality one but rather a prototype. However I introduced one improvement. We are no longer limited to up to two matrices each with 2^31-1 non-zero entries. We may have as many of them as the RAM permits. Their number is determined automatically and all of them are treated automatically as well.
 If you (or someone else) look at the code, at the top (before the program itself) there are several hard-coded definitions so each time you want to run the program with different values the program should be change and recompiled (on Linux I use: g++ -O3 -lm -o utesti.a utesti.c ). But it is very straightforward to convert this to a function so that all these hard-coded values become parameters.
 The hard-coded values are: 
@@ -24,7 +25,8 @@ I ran this new program on the entire genome at 1 kb resolution. The entire proce
 
 There are two C functions in two files: 
 - `myScale.c`: driver code which uses `scale1.c` 
-- `scale1.c`: the function which performs matrix scaling while myScale.c is an example of main program calling scale1.c.
+- `scale1.c`: the function which performs matrix scaling while myScale.c is an example of main program calling scale1.c.  
+- `scale2.c`: replaces scale1.c. Same functionality but better performance, some bugs fixed and the initial matrix is not altered.  
 
 At the moment all is hard-coded:
 limit for the number of nonzero elements (`m1` - currently 140,000,123)
@@ -49,4 +51,4 @@ and then
 `g++ -O3 -o scale.a myScale.c scale1.so`
 
 # Obsolete
-- `utesti.c`
+- `scale1.c`
