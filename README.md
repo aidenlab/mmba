@@ -63,6 +63,15 @@ or
 ./scale.a hg19_chr1_1K.h5 chr1_1K.scal chr1_1K.bvec 2e8  - making __m1__ 200,000,000
 etc.
 
+# Utilities  
+- `sbuild_big.R`: an R script to create genome-wige contacts matrix (in sparse upper triangular form) from a .hic file. The user needs to edit the file and make the below changes before running the scriot:  
+__line 3__: change the path o where your straw-R.cpp file is  
+__line 8__: choose the path to where your .hic file is  
+__line 9__: change binsize to the desired one  
+__line 10__: change path to where your chromosome lengths file is: the order of the chromosomes determines their order in the resulting contacts matrix; make sure that same order (same chromosome lengths file) is used when creating target vector.  
+__line 20__: change the path to where you want the contacts matrix to be output to  
+
+
 
 # Obsolete
 - `scale1.c`  
