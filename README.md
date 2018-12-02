@@ -94,7 +94,7 @@ __Running example__
 source norm_vec1.sh GSM733752_hg19_wgEncodeBroadHistoneGm12878CtcfStdSig.wig 1000 hg19.chrom.sizes  
 produces hg19_
 __res__
-_kb.scal file where res is the resolution in kylobytes  
+kb.scal file where res is the resolution in kylobytes  
 note that __bedtools__ must be installed
 
 
