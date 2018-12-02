@@ -93,7 +93,7 @@ use __build_target_vector.R__ to build scaling vector
 __Running__  
 source norm_vec1.sh wigFile res genomeFile outFile  
 i.e.  
-source norm_vec1.sh GSM733752_hg19_wgEncodeBroadHistoneGm12878CtcfStdSig.wig 1000 hg19.chrom.sizes  hg19_1kb.scal
+source norm_vec1.sh GSM733752_hg19_wgEncodeBroadHistoneGm12878CtcfStdSig.wig 1000 hg19.chrom.sizes hg19_1kb.scal  
 note that __bedtools__ must be installed
 
 
