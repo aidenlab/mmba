@@ -82,7 +82,7 @@ genomeFile should be the same one you use to create contacts matrix
 res (second argument) should be a multiple of 1000  
 __insert_norm_vector.awk__ must be in current directory  
 __bedtools__ must be available  
-it produces GM12878___res__kb_CTCF_normvector_1over.txt where res is the resolution in kb  
+it produces GM12878_'__res__'_kb_CTCF_normvector_1over.txt where res is the resolution in kb  
 use __build_target_vector.R__ to build scaling vector
 
 
