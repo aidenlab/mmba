@@ -65,6 +65,7 @@ etc.
 
 
 # Obsolete
-- `scale1.c`
+- `scale1.c`  
+- `scale2.c`
 - `utesti.c`
 - `myScale.c`
