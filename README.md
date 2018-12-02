@@ -71,6 +71,20 @@ __line 9__: change binsize to the desired one
 __line 10__: change path to where your chromosome lengths file is: the order of the chromosomes determines their order in the resulting contacts matrix; make sure that same order (same chromosome lengths file) is used when creating target vector.  
 __line 20__: change the path to where you want the contacts matrix to be output to  
 
+- `norm_vec.sh`: a bash script to build genome-wide target vector from .wig file  
+__Running__  
+source norm_vec.sh wigFile res genomeFile  
+i.e.  
+source norm_vec.sh GSM733752_hg19_wgEncodeBroadHistoneGm12878CtcfStdSig.wig 1000 hg19.chrom.sizes  
+
+__Notes:__  
+genomeFile should be the same one you use to create contacts matrix  
+res (second argument) should be a multiple of 1000  
+__insert_norm_vector.awk__ must be in current directory  
+__bedtools__ must be available  
+it produces GM12878___res__kb_CTCF_normvector_1over.txt where res is the resolution in kb  
+use __build_target_vector.R__ to build scaling vector
+
 
 
 # Obsolete
