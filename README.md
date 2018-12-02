@@ -81,13 +81,15 @@ genomeFile should be the same one you use to create contacts matrix
 res (second argument) should be a multiple of 1000  
 __insert_norm_vector.awk__ must be in current directory  
 __bedtools__ must be available  
-it produces GM12878_'__res__'_kb_CTCF_normvector_1over.txt where res is the resolution in kb  
+it produces GM12878_
+__res__
+_kb_CTCF_normvector_1over.txt where res is the resolution in kb  
 use __build_target_vector.R__ to build scaling vector  
 
 - `norm_vec1.sh`: a stand-alone bash script to create genome-wide scale vector  
 __Running example__  
 source norm_vec1.sh GSM733752_hg19_wgEncodeBroadHistoneGm12878CtcfStdSig.wig 1000 hg19.chrom.sizes  
-produces hg19_{__res__}_kb.scal file where res is the resolution in kylobytes  
+produces hg19_'__res__'_kb.scal file where res is the resolution in kylobytes  
 note that __bedtools__ must be installed
 
 
