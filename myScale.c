@@ -19,6 +19,13 @@ int main(int argc, char *argv[]) {
 	int *i, *j, *y;
 	double *x, *z;
 	struct timeb t0,t1,start,end;
+	if (argc < 4) {
+	  printf("Usage: %s <infile> <vector> <percentage>\n", argv[0]);
+	  printf("  <infile>: Matrix in sparse upper triangular format\n");
+	  printf("  <vector>: Target vector for scaling\n");
+	  printf("  <percentage>: percentage of lowest row sum nonzero rows (and columns) to be excluded\n"); 
+	  return 1;
+	}
 	ftime(&start);
 	FILE *fin = fopen(argv[1],"r");
 	FILE *finV = fopen(argv[2],"r");
