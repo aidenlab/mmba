@@ -1,54 +1,104 @@
-# MMBA - Moshe's Matrix Balancing Algorithm 
+# MMBA - Moshe's Matrix Balancing and Scaling Algorithm 
 
-* BETA Prototype *
+- `finalscale.c`: The function which performs matrix scaling; if the target vector is all 1 it performs matrix balancing.  
+It allows matrices with arbitrarily many nonzero elements. The only limit is the RAM size.  
+It has several mandatory arguments and additional optional arguments with default values. Setting any optional argument to a negative number results in default value being used.  
+The mandatory arguments are:  
 
-Balance an upper triangular sparse matrix of any size (as long as you have enough RAM).
-Can do the entire genome at 1 kb resolution if sufficiently large percentage of "low" rows are excluded.
+__c__ - the number of arrays holding row indexes, column indexes and values of the sparse matrix in upper-triangular form  
+__m__ - an integer array of length __c__ hoding the number of elements in the c arrays  
+__i__ - a list of __c__ arrays containing 0-based row indexes  
+__j__ - a list of __c__ arrays containing 0-based column indexes  
+__x__ - a list of __c__ arrays containing the matrix nonzero values  
+__z__ - the target vector; if row i is a "good" row it will be scaled to have the sum of z[i]  
+__b__ - on exit will contain the scaling vector for all "good" rows and NaN for "bad" rows; must be pre-allocated and contain at least as many elements as __z__.  
+__report__ - on exit will contain the maximum (relative) errors after each iteration; must be pre-allocated and have at least __maxiter__ elements  
 
-There are two C functions in two files: 
-* `myScale.c`: driver code which uses `scale2.c` 
-* `scale2.c`: replaces scale1.c. Same functionality but better performance, some bugs fixed and the initial matrix is not altered.  
+Optional arguments with default values:  
 
-Obsolete:
-* `scale1.c`: old version of scaling
-* `utesti.c`: old version of file that calls scaling
+__verb__ - whether to output error after each iteration; 0 (default) for silent running and 1 for verbose mode  
+__tol__ - the requested maximal relative error; default: 1.0e-3  
+__perc__ - what percentage of lowest sum nonzerow rows to ignore; default: 0.01, i.e. 1%  
+__perc1__ - what percentage of lowest and highest target vector values to ignore (has no effect for balancing); default: 0.25e-2  
+__maxiter__ - maximum number of iterations; default: 200  
+__del__ - the least error decrease thought at each iteration; default: 0.01  
+__trials__ - how many consecuitive iterations may have less that __del__ decrease in error the function will exit prematurely if this number is surpassed); default: 5  
 
-Usage example:
-```
-juicer_tools dump observed NONE https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic 1 1 BP 5000 chr1_5Kb.txt
-awk '{$1=$1/5000; $2=$2/5000; print}' chr1_5Kb.txt  > tmp; mv tmp chr1_5Kb.txt
-./bigWigToWig GSM733752_hg19_wgEncodeBroadHistoneGm12878CtcfStdSig.bigWig -chrom=chr1 chr1.wig
-awk 'BEGIN{m=0}$0!~/^#/{v=int($2/5000); a[v]+=$4; if (m<v){m=v}}END{for (i=0;i<=m;i++){if (i in a){print a[i]*25/5000}else{print 0}}}' chr1.wig > chr1.out
-./scale.a chr1_5Kb.txt chr1.out 0.02
+Return value:  
+on successful call returns __iter__ - the number of iterations needed for convergence  
+on unsuccessful call (premature termination) returns __-iter__, so if the return value is negative the function can be called again with higher __perc__ and/or __perc1__ and/or __maxiter__
 
+- `mainScale.c`: An example of main function calling __scale__. It has several mandatory and several optional command line arguments. It also has one hard coded argument __maxC__ - the maximum number of arrays that can be allocated; currently it is 100; note that __maxC__*__m1__*16 should be less than your RAM size in bytes; only as many arrays as needed to store the matrix will be allocated  
 
-The hard-coded values are: 
-* `m1` - the maximum size of an array, i.e. number of nonzero elements (currently 140,000,123)
-* `maxC` - how many such arrays toy allow to create (currently 100); consider your RAM size
-* `maxiter` - maximum number of iterations (currently 200)
-* `tol` - relative error allowed in sums of rows (currently 0.001)
-* `outfile` - where to output the bias vector
+Mandatory command line arguments:  
 
-It also expects 3 command line arguments:
-the first one is the name of the file where the matrix is; it should contain triplets of i,j,x where i and j are the row and column indices and x is the counts number; please note that i and j are (base 1) indices and not genomic coordinates
-the second argument is the file to read the target vector from; should have one value per row and contain at least as many entries as the matrix number of rows/columns (if it has more these values are ignored and the output vector will have them as NaNs)
-the third argument is the percentage of nonzero rows/columns to be filtered out (put 0.02 for 2%, etc.)
+__fin__ - the file to read the matrix from; each row should contain tripletsL i, j, value where i and j are integers and represent 1-based row and column numbers (will be converted to 0-based values before the call to __scale__); number of rows and columns in the matrix will be the highest value of j
+__finV__ - the file to read the target vector from (one value per line)
+__fout__ - the file to output the scaling vector
+
+Optional command line arguments:  
+
+__m1__ - how big arrays to allocate; should be less than 2^31 - 1 = 2,147,483,647; default: 7e8 = 700,000,000  
+__perc__ - the value of __perc__ to be passed to __scale__; default: 1.0e-2  
+__verb__ - the value of __verb__ to pass to __scale__
 
 A few comments:
 * I do not scale the bias vector to have mean/median of 1 but this is trivial to do.
 * Since all the values are integers I read them as such and then convert to double. This way reading in the matrix takes less time. Can be easily changed to read doubles.
 
 # Compiling
-`g++ -O3 -lm -o scale.a myScale.c scale2.c`
+`g++ -O3 -lm -o scale.a mainScale.c finalScale.c`
 
-alternatively I make a shared library by
+alternatively make a shared library by
 
-`g++ -O3 -shared -c -lm -o scale2.so scale2.c `
+`g++ -O3 -shared -c -lm -fPIC -o scale.so finalScale.c `
 
 and then 
 
-`g++ -O3 -o scale.a myScale.c scale2.so`
+`g++ -O3 -o scale.a mainScale.c scale.so`
+
+# Example of running 
+./scale.a hg19_chr1_1K.h5 chr1_1K.scal chr1_1K.bvec  
+or  
+./scale.a hg19_chr1_1K.h5 chr1_1K.scal chr1_1K.bvec 2e8  - making __m1__ 200,000,000
+etc.
+
+# Utilities  
+- `sbuild_big.R`: an R script to create genome-wige contacts matrix (in sparse upper triangular form) from a .hic file. The user needs to edit the file and make the below changes before running the scriot:  
+__line 3__: change the path o where your straw-R.cpp file is  
+__line 8__: choose the path to where your .hic file is  
+__line 9__: change binsize to the desired one  
+__line 10__: change path to where your chromosome lengths file is: the order of the chromosomes determines their order in the resulting contacts matrix; make sure that same order (same chromosome lengths file) is used when creating target vector.  
+__line 20__: change the path to where you want the contacts matrix to be output to  
+
+- `norm_vec.sh`: a bash script to build genome-wide target vector from .wig file  
+__Running__  
+source norm_vec.sh wigFile res genomeFile  
+i.e.  
+source norm_vec.sh GSM733752_hg19_wgEncodeBroadHistoneGm12878CtcfStdSig.wig 1000 hg19.chrom.sizes  
+__Notes:__  
+genomeFile should be the same one you use to create contacts matrix  
+res (second argument) should be a multiple of 1000  
+__insert_norm_vector.awk__ must be in current directory  
+__bedtools__ must be available  
+it produces GM12878_
+__res__
+_kb_CTCF_normvector_1over.txt where res is the resolution in kb  
+use __build_target_vector.R__ to build scaling vector  
+
+- `build_target_vector.R`: to be used after running __norm_vec.sh__ 
+- `insert_norm_vector.awk`: needed for __norm_vec.sh__
+
+- `norm_vec1.sh`: a stand-alone bash script to create genome-wide scale vector  
+__Running__  
+source norm_vec1.sh wigFile res genomeFile outFile  
+i.e.  
+source norm_vec1.sh GSM733752_hg19_wgEncodeBroadHistoneGm12878CtcfStdSig.wig 1000 hg19.chrom.sizes hg19_1kb.scal  
+note that __bedtools__ must be installed
+
 
 # Obsolete
-* `scale1.c`
-* `utesti.c`: at the moment a main function with hard-coded options; will be chenged to a proper function and driver routine. It allows to balance upper triangular sparse matrix of any size (as long as you have enough RAM), i.e. it lifts the limit of 2^31-1 on the number of non-zero elements. Will be adapted to do matrix scaling as well. Can do the entire genome at 1 kb resolution if sufficiently large percentage of "low" rows is excluded.
+- `scale1.c`  
+- `scale2.c`
+- `utesti.c`
+- `myScale.c`
