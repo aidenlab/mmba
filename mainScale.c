@@ -16,10 +16,32 @@ int main(int argc, char *argv[]) {
 	double **x;
 	double *z, *z0;
 	struct timeb t0,t1,start,end;
-	ftime(&start);
+	if (argc < 4) {
+	  printf("Usage: %s <infile> <vector_file> <outfile>\n", argv[0]);
+	  printf("  <infile>: file containing tuples delineating sparse matrix in upper triangular format\n");
+	  printf("  <vector_file>: vector to scale to (use all 1s for balancing)\n");
+	  printf("  <outfile>: output file, will contain scaled matrix in sparse upper triangular format\n");
+	  exit(1);
+	}
+
         FILE *fin = fopen(argv[1],"r");
         FILE *finV = fopen(argv[2],"r");
         FILE *fout = fopen(argv[3],"w");
+
+	if (fin == NULL) {
+	  fprintf(stderr, "Error! File %s cannot be opened for reading\n", argv[1]);
+	  exit(1);
+	}
+	if (finV == NULL) {
+	  fprintf(stderr, "Error! File %s cannot be opened for reading\n", argv[2]);
+	  exit(1);
+	}
+	if (fout == NULL) {
+	  fprintf(stderr, "Error! File %s cannot be opened for writing\n", argv[3]);
+	  exit(1);
+	}
+
+	ftime(&start);
         int m1 = (int) 7e8; 
 	if (argc > 4) m1 = (int) atof(argv[4]);
         double perc = 1.0e-2;
@@ -58,6 +80,7 @@ int main(int argc, char *argv[]) {
 		if (k < m1) break;
 	}
 	fclose(fin);
+	printf("finished reading\n");
         n = 0;
         while(fscanf(finV,"%lf",&z0[n]) == 1) n++;
 	for (p=0;p<n;p++) z[p] = z0[p];
