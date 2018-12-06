@@ -37,7 +37,7 @@ int cmpfunc (const void * a, const void * b) {
 *	bekow are arguments having defaukt values
 *
 
-*	verb indicates whether the function needs to output yhe progress; 1 means report, 0 means run silent
+*	verb indicates whether the function needs to output the progress; 1 means report, 0 means run silent
 
 *	tol is the desired relative error
 
