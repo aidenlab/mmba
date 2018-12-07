@@ -23,9 +23,9 @@ The main function takes in several optional arguments:
 
 Mandatory command line arguments:  
 
-**fin** - the file to read the matrix from; each row should contain tripletsL i, j, value where i and j are integers and represent 1-based row and column numbers (will be converted to 0-based values before the call to `scale`); number of rows and columns in the matrix will be the highest value of j
-**finV** - the file to read the target vector from (one value per line)
-**fout** - the file to output the scaling vector
+* **fin** - the file to read the matrix from; each row should contain tripletsL i, j, value where i and j are integers and represent 1-based row and column numbers (will be converted to 0-based values before the call to `scale`); number of rows and columns in the matrix will be the highest value of j
+* **finV** - the file to read the target vector from (one value per line)
+* **fout** - the file to output the scaling vector
 
 A few comments:
 * I do not scale the bias vector to have mean/median of 1 but this is trivial to do.
