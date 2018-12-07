@@ -1,67 +1,61 @@
 # MMBA - Moshe's Matrix Balancing and Scaling Algorithm 
 
-- `finalscale.c`: The function which performs matrix scaling; if the target vector is all 1 it performs matrix balancing.  
+Balance an upper triangular sparse matrix of any size (as long as you have enough RAM). Can do the entire genome at 1 kb resolution if sufficiently large percentage of "low" rows are excluded.
+
+There are two C functions in two files:
+
+- `zeroScale.c`: The function which performs matrix scaling; if the target vector is all 1 it performs matrix balancing.  
 It allows matrices with arbitrarily many nonzero elements. The only limit is the RAM size.  
-It has several mandatory arguments and additional optional arguments with default values. Setting any optional argument to a negative number results in default value being used.  
-The mandatory arguments are:  
+- `mainScale.c`: Driver function that calls `zeroScale`.
 
-__c__ - the number of arrays holding row indexes, column indexes and values of the sparse matrix in upper-triangular form  
-__m__ - an integer array of length __c__ hoding the number of elements in the c arrays  
-__i__ - a list of __c__ arrays containing 0-based row indexes  
-__j__ - a list of __c__ arrays containing 0-based column indexes  
-__x__ - a list of __c__ arrays containing the matrix nonzero values  
-__z__ - the target vector; if row i is a "good" row it will be scaled to have the sum of z[i]  
-__b__ - on exit will contain the scaling vector for all "good" rows and NaN for "bad" rows; must be pre-allocated and contain at least as many elements as __z__.  
-__report__ - on exit will contain the maximum (relative) errors after each iteration; must be pre-allocated and have at least __maxiter__ elements  
-
-Optional arguments with default values:  
-
-__verb__ - whether to output error after each iteration; 0 (default) for silent running and 1 for verbose mode  
-__tol__ - the requested maximal relative error; default: 1.0e-3  
-__perc__ - what percentage of lowest sum nonzerow rows to ignore; default: 0.01, i.e. 1%  
-__perc1__ - what percentage of lowest and highest target vector values to ignore (has no effect for balancing); default: 0.25e-2  
-__maxiter__ - maximum number of iterations; default: 200  
-__del__ - the least error decrease thought at each iteration; default: 0.01  
-__trials__ - how many consecuitive iterations may have less that __del__ decrease in error the function will exit prematurely if this number is surpassed); default: 5  
-
-Return value:  
-on successful call returns __iter__ - the number of iterations needed for convergence  
-on unsuccessful call (premature termination) returns __-iter__, so if the return value is negative the function can be called again with higher __perc__ and/or __perc1__ and/or __maxiter__
-
-- `mainScale.c`: An example of main function calling __scale__. It has several mandatory and several optional command line arguments. It also has one hard coded argument __maxC__ - the maximum number of arrays that can be allocated; currently it is 100; note that __maxC__*__m1__*16 should be less than your RAM size in bytes; only as many arrays as needed to store the matrix will be allocated  
+The main function takes in several optional arguments:
+**-m** the size of arrays that will be allocated; should be less than 2^31
+**-p** the percentage of low rows to be filtered out
+**-q** the percentage of highest and lowest nonzero values in target vector to be filtered out
+**-v** whether the main program should report anything (1 for yes, 0 for no)
+**-s** whether scale should be run in a silent mode (1 for yes and 0 for no). If scale is run in silent mode (which may be desirable) it produces no output and the convergence report is printed by the main function
+**-C** maximum number of arrays that may be allocated; note that `maxC`&#42;`m`&#42;16 should be less than your RAM size in bytes; only as many arrays as needed to store the matrix will be allocated
+**-t** how small the relative error in row sums needs to be
+**-d** the minimal percentage of decrease in row sums error at each iteration
+**-f** for how many consecutive iterations the decrease may be below what is specified by -d
+**-a** if there was no convergence, how many times to rerun scale each time increasing perc and perc1 by 50%; the 50% increase is still hard coded.
+  
 
 Mandatory command line arguments:  
 
-__fin__ - the file to read the matrix from; each row should contain tripletsL i, j, value where i and j are integers and represent 1-based row and column numbers (will be converted to 0-based values before the call to __scale__); number of rows and columns in the matrix will be the highest value of j
-__finV__ - the file to read the target vector from (one value per line)
-__fout__ - the file to output the scaling vector
-
-Optional command line arguments:  
-
-__m1__ - how big arrays to allocate; should be less than 2^31 - 1 = 2,147,483,647; default: 7e8 = 700,000,000  
-__perc__ - the value of __perc__ to be passed to __scale__; default: 1.0e-2  
-__verb__ - the value of __verb__ to pass to __scale__
+**fin** - the file to read the matrix from; each row should contain tripletsL i, j, value where i and j are integers and represent 1-based row and column numbers (will be converted to 0-based values before the call to `scale`); number of rows and columns in the matrix will be the highest value of j
+**finV** - the file to read the target vector from (one value per line)
+**fout** - the file to output the scaling vector
 
 A few comments:
 * I do not scale the bias vector to have mean/median of 1 but this is trivial to do.
 * Since all the values are integers I read them as such and then convert to double. This way reading in the matrix takes less time. Can be easily changed to read doubles.
 
 # Compiling
-`g++ -O3 -lm -o scale.a mainScale.c finalScale.c`
+`g++ -O3 -lm -o scale.a mainScale.c zeroScale.c`
 
 alternatively make a shared library by
 
-`g++ -O3 -shared -c -lm -fPIC -o scale.so finalScale.c `
+`g++ -O3 -shared -c -lm -fPIC -o scale.so zeroScale.c `
 
 and then 
 
 `g++ -O3 -o scale.a mainScale.c scale.so`
 
 # Example of running 
-./scale.a hg19_chr1_1K.h5 chr1_1K.scal chr1_1K.bvec  
+```
+juicer_tools dump observed NONE https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic 1 1 BP 5000 chr1_5Kb.txt
+awk '{$1=($1/5000) + 1; $2=($2/5000) + 1; print}' chr1_5Kb.txt  > tmp; mv tmp chr1_5Kb.txt
+./bigWigToWig GSM733752_hg19_wgEncodeBroadHistoneGm12878CtcfStdSig.bigWig -chrom=chr1 chr1.wig
+awk 'BEGIN{m=0}$0!~/^#/{v=int($2/5000); a[v]+=$4; if (m<v){m=v}}END{for (i=0;i<=m;i++){if (i in a){print a[i]*25/5000}else{print 0}}}' chr1.wig > chr1.out
+./scale.a chr1_5Kb.txt chr1.out myfile.out
+```
+
+`./scale.a hg19_chr1_1K.h5 chr1_1K.scal chr1_1K.bvec`  
+
 or  
-./scale.a hg19_chr1_1K.h5 chr1_1K.scal chr1_1K.bvec 2e8  - making __m1__ 200,000,000
-etc.
+
+`./scale.a -m 2e8 hg19_chr1_1K.h5 chr1_1K.scal chr1_1K.bvec `
 
 # Utilities  
 - `sbuild_big.R`: an R script to create genome-wige contacts matrix (in sparse upper triangular form) from a .hic file. The user needs to edit the file and make the below changes before running the scriot:  
@@ -102,3 +96,4 @@ note that __bedtools__ must be installed
 - `scale2.c`
 - `utesti.c`
 - `myScale.c`
+- `finalScale.c`
