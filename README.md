@@ -9,16 +9,16 @@ It allows matrices with arbitrarily many nonzero elements. The only limit is the
 - `mainScale.c`: Driver function that calls `zeroScale`.
 
 The main function takes in several optional arguments:
-**-m** the size of arrays that will be allocated; should be less than 2^31
-**-p** the percentage of low rows to be filtered out
-**-q** the percentage of highest and lowest nonzero values in target vector to be filtered out
-**-v** whether the main program should report anything (1 for yes, 0 for no)
-**-s** whether scale should be run in a silent mode (1 for yes and 0 for no). If scale is run in silent mode (which may be desirable) it produces no output and the convergence report is printed by the main function
-**-C** maximum number of arrays that may be allocated; note that `maxC`&#42;`m`&#42;16 should be less than your RAM size in bytes; only as many arrays as needed to store the matrix will be allocated
-**-t** how small the relative error in row sums needs to be
-**-d** the minimal percentage of decrease in row sums error at each iteration
-**-f** for how many consecutive iterations the decrease may be below what is specified by -d
-**-a** if there was no convergence, how many times to rerun scale each time increasing perc and perc1 by 50%; the 50% increase is still hard coded.
+* **-m** the size of arrays that will be allocated; should be less than 2^31
+* **-p** the percentage of low rows to be filtered out
+* **-q** the percentage of highest and lowest nonzero values in target vector to be filtered out
+* **-v** whether the main program should report anything (1 for yes, 0 for no)
+* **-s** whether scale should be run in a silent mode (1 for yes and 0 for no). If scale is run in silent mode (which may be desirable) it produces no output and the convergence report is printed by the main function
+* **-C** maximum number of arrays that may be allocated; note that `maxC`&#42;`m`&#42;16 should be less than your RAM size in bytes; only as many arrays as needed to store the matrix will be allocated
+* **-t** how small the relative error in row sums needs to be
+* **-d** the minimal percentage of decrease in row sums error at each iteration
+* **-f** for how many consecutive iterations the decrease may be below what is specified by -d
+* **-a** if there was no convergence, how many times to rerun scale each time increasing perc and perc1 by 50%; the 50% increase is still hard coded.
   
 
 Mandatory command line arguments:  
