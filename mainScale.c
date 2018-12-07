@@ -5,11 +5,11 @@
 #include <sys/timeb.h>
 #include <time.h>
 
-int scale(int c, int *m,int **i,int **j,double **x, double *z,double *b, double *report, int verb=0,double tol=1.0e-3,double perc=1e-2,double perc1=0.25e-2, int maxiter=200,double del=1.0e-2,int trials=5);
+int scale(int c, int *m,int **i,int **j,double **x, double *z,double *b, double report[][2], int verb=0,double tol=1.0e-3,double perc=1e-2,double perc1=0.25e-2, int maxiter=200,double del=1.0e-2,int trials=5);
 
 static void usage(const char *argv0)
 {
-  fprintf(stderr, "Usage: %s [-m memarray][-p percent][-v verbose][-C max_array_count][-t tol] <infile> <vector_file> <outfile>\n", argv0);
+  fprintf(stderr, "Usage: %s [-m memarray][-p percent][-q percent1][-v verbose][-s silent][-C max_array_count][-t tol][-d delta][-f trials][-a attempts] <infile> <vector_file> <outfile>\n", argv0);
   fprintf(stderr, "  <infile>: matrix file in sparse upper triangular notation\n");
   fprintf(stderr, "  <vector_file>: vector to scale to, all 1s for balanced\n");
   fprintf(stderr, "  <outfile>: normalization vector output  file\n");
@@ -31,14 +31,21 @@ int main(int argc, char *argv[]) {
   double perc = 1.0e-2;
   double perc1=0.25e-2;
   int verb=0;
+  int silent=1;
   int maxiter=300;
+  double delta=0.01;
+  int trials=5;
+  int attempts=3;
   
-  while ((opt = getopt(argc, argv, "m:p:v:C:t:I:h")) != -1) {
+  while ((opt = getopt(argc, argv, "m:p:q:v:s:C:t:d:f:I:a:h")) != -1) {
     switch (opt) {
     case 'm':
       m1 = (int) atof(optarg);
       break;
     case 'p':
+      perc = atof(optarg);
+      break;
+    case 'q':
       perc1 = atof(optarg);
       break;
     case 'C':
@@ -47,11 +54,23 @@ int main(int argc, char *argv[]) {
     case 't':
       tol = atof(optarg);
       break;
+    case 'd':
+      delta = atof(optarg);
+      break;
+    case 'f':
+      trials = atoi(optarg);
+      break;
     case 'v':
       verb = atoi(optarg);
       break;
+    case 's':
+      silent = atoi(optarg);
+      break;
     case 'I':
       maxiter=atoi(optarg);
+      break;
+    case 'a':
+      attempts=atoi(optarg);
       break;
     case 'h':
       usage(argv[0]);
@@ -128,33 +147,33 @@ int main(int argc, char *argv[]) {
   for (p=0;p<n;p++) b[p] = NAN;
   fclose(finV);
   
-  double *report = (double *) malloc(maxiter*sizeof(double));
+  double report[maxiter+1][2];
   
   ftime(&t1);
-  //	iter = scale(c, m,i,j,x, z,b, tol,perc,perc1,maxiter, report,verb);
-  iter = scale(c, m,i,j,x, z,b,report,verb);
+  iter = scale(c, m,i,j,x, z,b,report,1-silent,tol,perc,perc1,maxiter,delta,trials);
   
   ftime(&end);
   printf("took %ld seconds\n",(long) (end.time - start.time));
   printf("iterations took %15.10lf seconds\n",((double) (end.time - t1.time)) + 0.001*(end.millitm - t1.millitm) );
-  if (verb) for (p=0;p<abs(iter);p++) printf("%d: %30.15lg\n",p+1,report[p]);
+  if (silent) for (p=0;p<abs(iter);p++) printf("%d: %30.15lf %30.15lf\n",p+1,report[p][0],report[p][1]);
   int count=0;
-  while (iter < 0 && count++ <3) {
+  while (iter < 0 && count++ < attempts) {
     printf("Did not converge!!!\n");
     perc=1.5*perc;
-    printf("new perc = %lg\n",perc);
+    perc1=1.5*perc1;
+    printf("new perc = %lg and new perc1 = %lg\n",perc,perc1);
     for (p=0;p<n;p++) z[p] = z0[p];
     ftime(&t1);
     //		iter = scale(c, m,i,j,x, z,b, tol,perc,perc1,maxiter, report,verb);
-    iter = scale(c, m,i,j,x, z,b,report,verb,-1,perc,0.005);
+    iter = scale(c, m,i,j,x, z,b,report,1-silent,-1,perc,perc1,maxiter,delta,trials);
     ftime(&end);
     printf("iterations took %15.10lf seconds\n",((double) (end.time - t1.time)) + 0.001*(end.millitm - t1.millitm) );
-    if (!verb) for (p=0;p<abs(iter);p++) printf("%d: %30.15lg\n",p+1,report[p]);
+    if (silent) for (p=0;p<abs(iter);p++) printf("%d: %30.15lf %30.15lf\n",p+1,report[p][0],report[p][1]);
   }
   
   for (p=0;p<n;p++) fprintf(fout,"%30.15lf\n",b[p]);
   fclose(fout);
-  if (count >= 3) printf("still did not converge!!!\n");
+  if (iter < 0) printf("still did not converge!!!\n");
   return(iter);
 }
 
