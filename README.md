@@ -57,12 +57,15 @@ or
 `./scale.a -m 2e8 hg19_chr1_1K.h5 chr1_1K.scal chr1_1K.bvec `
 
 # Utilities  
-- `sbuild_big.R`: an R script to create genome-wige contacts matrix (in sparse upper triangular form) from a .hic file. The user needs to edit the file and make the below changes before running the scriot:  
+- `sbuild_big.R`: an R script to create genome-wige contacts matrix (in sparse upper triangular form) from a .hic file. This version takes care of the case where __straw__ swaps thr order of input chromosomes. The user needs to edit the file and make the below changes before running the scriot:  
 __line 3__: change the path o where your straw-R.cpp file is  
-__line 8__: choose the path to where your .hic file is  
-__line 9__: change binsize to the desired one  
-__line 10__: change path to where your chromosome lengths file is: the order of the chromosomes determines their order in the resulting contacts matrix; make sure that same order (same chromosome lengths file) is used when creating target vector.  
-__line 20__: change the path to where you want the contacts matrix to be output to  
+__line 11__: choose the path to where your .hic file is  
+__line 12__: change path to where your chromosome lengths file is: the order of the chromosomes determines their order in the resulting contacts matrix; make sure that same order (same chromosome lengths file) is used when creating target vector.  
+__line 22__: change the path to where you want the contacts matrix to be output to. If not it will be output to new_big_
+__res__
+K.h5 where res is binsize/1000.  
+__Running__  
+Rscript --vanilla sbuild_big.R binsize (i.e. Rscript --vanilla sbuild_big.R 10000 ).
 
 - `norm_vec.sh`: a bash script to build genome-wide target vector from .wig file  
 __Running__  
