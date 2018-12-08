@@ -27,9 +27,8 @@ Mandatory command line arguments:
 * **finV** - the file to read the target vector from (one value per line)
 * **fout** - the file to output the scaling vector
 
-A few comments:
+A comment:
 * I do not scale the bias vector to have mean/median of 1 but this is trivial to do.
-* Since all the values are integers I read them as such and then convert to double. This way reading in the matrix takes less time. Can be easily changed to read doubles.
 
 # Compiling
 `g++ -O3 -lm -o scale.a mainScale.c zeroScale.c`
