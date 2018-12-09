@@ -92,10 +92,3 @@ i.e.
 source norm_vec1.sh GSM733752_hg19_wgEncodeBroadHistoneGm12878CtcfStdSig.wig 1000 hg19.chrom.sizes hg19_1kb.scal  
 note that __bedtools__ must be installed
 
-
-# Obsolete
-- `scale1.c`  
-- `scale2.c`
-- `utesti.c`
-- `myScale.c`
-- `finalScale.c`
