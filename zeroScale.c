@@ -61,7 +61,7 @@ int verb=0, double tol=1.0e-3,double perc=1.0e-2,double perc1=0.25e-2, int maxit
 {  
 	if (tol < 0) tol=1.0e-3;
 	if (perc < 0) perc=1.0e-2;
-	if (perc1 < 0) perc=0.25e-2;
+	if (perc1 < 0) perc1=0.25e-2;
 	if (maxiter < 0) maxiter=200;
 	if (verb < 0) verb=0;
 	if (del < 0) del=1.0e-2;
