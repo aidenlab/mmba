@@ -12,7 +12,6 @@ fname1=$(basename -- "$hicfile")
 fname2=$(basename -- "$bigwigfile")
 filename="$(echo -e "${fname1%.*}_scaled_${fname2%.*}" | tr -d '[:space:]')"
 rm -f ${filename}.txt
-resolutions=1000000
 #2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 X Y
 for chr in 1 
 do
@@ -23,12 +22,12 @@ do
 	${juicer_tools} dump observed NONE $hicfile $chr $chr BP $res chr${chr}_${x}Kb.txt
 	awk -v res=$res '{$1=($1/res) + 1; $2=($2/res) + 1; print}' chr${chr}_${x}Kb.txt  > tmp; mv tmp chr${chr}_${x}Kb.txt
 
-	sum=$(awk '{sum+=$3; if ($1!=$2){sum+=$3}END{print sum}')
+	#sum=$(awk '{sum+=$3; if ($1!=$2){sum+=$3}}END{print sum}' chr${chr}_${x}Kb.txt)
 
 	# raw ChIP-Seq vector
 	awk -v res=$res 'BEGIN{m=0}$0!~/^#/{v=int($2/res); a[v]+=$4; if (m<v){m=v}}END{for (i=0;i<=m;i++){if (i in a){val=a[i]*25/res; print val;}else{print "NaN"}}}' chr${chr}.wig > chr${chr}.out
 	
-	./scale.a chr${chr}_${x}Kb.txt chr${chr}.out chr${chr}_scaled.out
+	./scale.a -q 0 chr${chr}_${x}Kb.txt chr${chr}.out chr${chr}_scaled.out
 
 	# calculate scaling constant factor (so sums of matrices remain same)
 	factor=$(awk 'BEGIN{count=1}(FNR==NR){array[count]=$1; count=count+1;}(FNR!=NR){if (array[$1]!="nan" && array[$2]!="nan"&& array[$1]>0 && array[$2]>0){ value=$3/(array[$1]*array[$2]); norm_sum = norm_sum+value; sum=sum+$3; if ($1!=$2){norm_sum=norm_sum+value; sum=sum+$3;}}}END{print sqrt(norm_sum/sum)}' chr${chr}_scaled.out chr${chr}_${x}Kb.txt)
