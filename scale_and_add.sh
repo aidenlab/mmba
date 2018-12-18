@@ -24,16 +24,16 @@ do
 
 	#sum=$(awk '{sum+=$3; if ($1!=$2){sum+=$3}}END{print sum}' chr${chr}_${x}Kb.txt)
 
-	# raw ChIP-Seq vector
+	# raw ChIP-Seq vector binned at resolution
 	awk -v res=$res 'BEGIN{m=0}$0!~/^#/{v=int($2/res); a[v]+=$4; if (m<v){m=v}}END{for (i=0;i<=m;i++){if (i in a){val=a[i]*25/res; print val;}else{print "NaN"}}}' chr${chr}.wig > chr${chr}.out
 	
 	./scale.a -q 0 chr${chr}_${x}Kb.txt chr${chr}.out chr${chr}_scaled.out
 
 	# calculate scaling constant factor (so sums of matrices remain same)
-	factor=$(awk 'BEGIN{count=1}(FNR==NR){array[count]=$1; count=count+1;}(FNR!=NR){if (array[$1]!="nan" && array[$2]!="nan"&& array[$1]>0 && array[$2]>0){ value=$3/(array[$1]*array[$2]); norm_sum = norm_sum+value; sum=sum+$3; if ($1!=$2){norm_sum=norm_sum+value; sum=sum+$3;}}}END{print sqrt(norm_sum/sum)}' chr${chr}_scaled.out chr${chr}_${x}Kb.txt)
+	factor=$(awk 'BEGIN{count=1}(FNR==NR){if ($1==0 || $1=="nan"){array[count]="nan"}else{array[count]=1/$1;} count=count+1;}(FNR!=NR){if (array[$1]!="nan" && array[$2]!="nan" && array[$1]>0 && array[$2]>0){ value=$3/(array[$1]*array[$2]); norm_sum = norm_sum+value; sum=sum+$3; if ($1!=$2){norm_sum=norm_sum+value; sum=sum+$3;}}}END{print sqrt(norm_sum/sum)}' chr${chr}_scaled.out chr${chr}_${x}Kb.txt)
 
 	echo $factor
-	awk -v res=$res -v chr=$chr -v bw=$filename -v factor=$factor  'BEGIN{OFS="\t"; print "vector", bw,chr,res,"BP"}{if ($1=="nan"){$1="NaN"}else{$1=$1*factor;} print}' chr${chr}_scaled.out >> ${filename}.txt
+	awk -v res=$res -v chr=$chr -v bw=$filename -v factor=$factor  'BEGIN{OFS="\t"; print "vector", bw,chr,res,"BP"}{if ($1=="nan"){$1="NaN"}else if ($1==0){$1="NaN"}else{$1=factor/$1;} print}' chr${chr}_scaled.out >> ${filename}.txt
     done
 done
 
