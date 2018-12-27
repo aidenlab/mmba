@@ -57,7 +57,7 @@ do
     for res in $resolutions
     do
         # create source matrix for scaling: sparse, upper triangular
-#	      ${juicer_tools} dump observed NONE ${hicfile} $chr $chr BP $res | awk -v res=$res '{$1=($1/res)+1; $2=($2/res)+1; print}' > chr${chr}_${res}.txt
+	      ${juicer_tools} dump observed NONE ${hicfile} $chr $chr BP $res | awk -v res=$res '{$1=($1/res)+1; $2=($2/res)+1; print}' > chr${chr}_${res}.txt
 
 	      if [[ $isbigwig -eq 1 ]]
 	      then
