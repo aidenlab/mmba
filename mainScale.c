@@ -140,8 +140,17 @@ int main(int argc, char *argv[]) {
   }
   fclose(fin);
   printf("finished reading\n");
+
+  k = 0;
+  for (int ic=0;ic<c;ic++) for (int p=0; p<m[ic];p++) if (j[ic][p] > k) k=j[ic][p];
+  k++;
+
   n = 0;
   while(fscanf(finV,"%lf",&z0[n]) == 1) n++;
+  if (n < k) {
+	for (int p=n;p<k;p++) z0[p] = NAN;
+	n = k;
+  }
   for (p=0;p<n;p++) z[p] = z0[p];
   double *b = (double *) malloc((n+1)*sizeof(double));
   for (p=0;p<n;p++) b[p] = NAN;
@@ -151,7 +160,7 @@ int main(int argc, char *argv[]) {
   
   ftime(&t1);
   iter = scale(c, m,i,j,x, z,b,report,1-silent,tol,perc,perc1,maxiter,delta,trials);
-  
+
   ftime(&end);
   printf("took %ld seconds\n",(long) (end.time - start.time));
   printf("iterations took %15.10lf seconds\n",((double) (end.time - t1.time)) + 0.001*(end.millitm - t1.millitm) );
