@@ -1,4 +1,6 @@
 #!/bin/bash
+source /broad/software/scripts/useuse
+use Java-1.7
 
 juicer_tools="java -Xmx16000m -jar /broad/aidenlab/neva/scaling/mmba/juicer_tools.jar "
 bigWigToWig="/broad/aidenlab/neva/scaling/mmba/bigWigToWig"
@@ -47,6 +49,7 @@ rm -f ${filename}.txt
 
 for chr in $chrs
 do
+    echo "Chromosome $chr"
     # check if bigWig 
     # make this a command line options
     if [[ $isbigwig -eq 1 ]]
@@ -64,13 +67,20 @@ do
 	      # raw ChIP-Seq vector binned at resolution
             awk -v res=$res 'BEGIN{m=0}$0!~/^#/{v=int($2/res); a[v]+=$4; if (m<v){m=v}}END{for (i=0;i<=m;i++){if (i in a){val=a[i]*25/res; print val;}else{print "NaN"}}}' chr${chr}.wig > chr${chr}.out
 	          # call scale; output is normalization vector
-	          ./scale.a chr${chr}_${res}.txt chr${chr}.out scaled.out
+            # if the regular call fails, loosen parameters
+            if ! ./scale.a -q 0 chr${chr}_${res}.txt chr${chr}.out scaled.out
+            then
+	              ./scale.a -p 0.04 -q 0.01 chr${chr}_${res}.txt chr${chr}.out scaled.out
+            fi
 	          rm chr${chr}.out
 	      else
 	          # create target vector: row sums of target hic file 
 	          ${juicer_tools} dump observed NONE ${target} $chr $chr BP $res | awk -v res=$res '{$1=($1/res)+1; $2=($2/res)+1; a[$1]+=$3; if ($1!=$2){a[$2]+=$3} if ($1>m){m=$1} if($2>m){m=$2}}END{for (i=1;i<=m; i++){if (i in a){print a[i]}else {print 0}}}' > chr${chr}_${res}_summed.txt 
 	          # call scale; output is normalization vector
-	          ./scale.a chr${chr}_${res}.txt chr${chr}_${res}_summed.txt scaled.out
+	          if ! ./scale.a -q 0 chr${chr}_${res}.txt chr${chr}_${res}_summed.txt scaled.out
+            then
+                ./scale.a -p 0.04 -q 0.01 chr${chr}_${res}.txt chr${chr}_${res}_summed.txt scaled.out
+            fi
 	          rm chr${chr}_${res}_summed.txt
 	      fi
 
