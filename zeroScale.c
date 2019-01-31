@@ -11,12 +11,12 @@ int cmpfunc (const void * a, const void * b) {
 
 /********************************************************************************************************************
 *
-*	This function allows more that 2^31 - 1 nonzero entries. It acceptc a list of c arrays where array i contains m[i] elements
+*	This function allows more that 2^31 - 1 nonzero entries. It accepts a list of c arrays where array i contains m[i] elements
 *
 
 *	c is the number of arrays
 
-*	m is array containing the number of elements of the c arrays
+*	m is an array containing the number of elements of the c arrays
 
 *	i and j are lists of c 0-based arrays each containing the row and column indices of the nonzero bins
 
@@ -34,7 +34,7 @@ int cmpfunc (const void * a, const void * b) {
 *	on exit report contains the relative error after each iteration
 
 *
-*	bekow are arguments having defaukt values
+*	below are arguments having default values
 *
 
 *	verb indicates whether the function needs to output yhe progress; 1 means report, 0 means run silent
