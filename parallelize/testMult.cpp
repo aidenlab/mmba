@@ -6,7 +6,7 @@
 #include "timing.h"
 
 extern void simpleMul(int *i,int *j,double *x,int m,double *v,int k,double *res);
-extern void cpuMul(int *i,int *j,double *x,int m,double *v,int k,double *res,int max_ij, int thread_count);
+extern void ompMul(int *i,int *j,double *x,int m,double *v,int k,double *res,int max_ij, int thread_count);
 extern void cudaMul(int *i,int *j,double *x,int m,double *v,int k,double *res, int max_ij, int thread_count, int Q, double simpleTime);
 
 
@@ -63,7 +63,9 @@ int main(int argc, char *argv[]) {
   double *newres = (double *) malloc(k*sizeof(double));
 
   srand(1234567);
-  for (p=0;p<k;p++) b[p] = drand48();
+  for (p=0;p<k;p++) 
+    b[p] = drand48();
+    // b[p] = 0.5;
 
   int Q = 20;
   // ftime(&t0);
@@ -84,7 +86,7 @@ int main(int argc, char *argv[]) {
   // ftime(&tm0);
   timingBegin();
   for(int q=0;q<Q;q++)
-    cpuMul(i,j,x,m,b,k,newres,max_ij,thread_count);
+    ompMul(i,j,x,m,b,k,newres,max_ij,thread_count);
   // ftime(&tm1);
   timingEnd();
 
@@ -105,9 +107,11 @@ int main(int argc, char *argv[]) {
   cudaMul(i,j,x,m,b,k,newres,max_ij,thread_count,Q,simpleTime);
 
   err = 0;
-  for (p=0;p<k; p++) 
-    if (fabs(res[p] - newres[p]) > err) 
+  for (p=0;p<k; p++) {
+    if (fabs(res[p] - newres[p]) > err) {
       err = fabs(res[p] - newres[p]);
+    }
+  }
   printf("the error is %lg\n",err);
 
   printf("----------------------------------\n");

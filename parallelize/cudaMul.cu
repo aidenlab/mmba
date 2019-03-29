@@ -42,26 +42,46 @@ void kernel_init_zero_2(double *res, double *res2, int k) {
 	res2[index] = 0;
 }
 
+
+__device__ double atomicAddDouble(double* address, double val)
+{
+    unsigned long long int* address_as_ull =
+                              (unsigned long long int*)address;
+    unsigned long long int old = *address_as_ull, assumed;
+
+    do {
+        assumed = old;
+        old = atomicCAS(address_as_ull, assumed,
+                        __double_as_longlong(val +
+                               __longlong_as_double(assumed)));
+
+    // Note: uses integer comparison to avoid hang in case of NaN (since NaN != NaN)
+    } while (assumed != old);
+
+    return __longlong_as_double(old);
+}
+
+
 __global__
 void kernel_calc(int k, int m, int *i, int *j, double *x, double *v, double *res, int for_loop_size) {
 	int index = blockIdx.x * blockDim.x + threadIdx.x;
 	if(index >= m)
 		return;
 
-	//int end = index+for_loop_size;
-	//for(int p=index;p<end;p++) {
-	int p = index;
-	int ix = i[p];
-	int jx = j[p];
-	double xx = x[p];
+	// int end = index+for_loop_size;
+	// for(int p=index;p<end;p++) {
+		int p = index;
+		int ix = i[p];
+		int jx = j[p];
+		double xx = x[p];
 
-	// res[jx] += xx*v[ix];
-	atomicAdd(&res[jx], xx*v[ix]);
+		// res[jx] += xx*v[ix];
+		atomicAdd(&res[jx], xx*v[ix]);
 
 
-	// res[ix] += xx*v[jx];
-    atomicAdd(&res[ix], xx*v[jx]);		
-	//}
+		// res[ix] += xx*v[jx];
+		atomicAdd(&res[ix], xx*v[jx]);		
+	// }
 }
 
 
@@ -345,15 +365,16 @@ void cudaMul(int *i,int *j,double *x,int m,double *v,int k,double *res, int max_
 
 
 		for_loop_size = 1;
-		vector = 64;
+		vector = 1024;
 		delta = for_loop_size * vector;
 		gang = (m+delta-1) / delta;
+		// printf("gang, vector, gang*vector, m: %d, %d, %d, %d\n", gang, vector, gang*vector, m);
 
 		kernel_calc<<<gang, vector>>>(k, m, d_i, d_j, d_x, d_v, d_res, for_loop_size);
                 
 		// kernel_calc_2<<<gang, vector>>>(k, m, d_i, d_j, d_x, d_v, d_res, for_loop_size);
 
-		//kernel_calc_2for<<<gang, vector>>>(k, m, d_i, d_j, d_x, d_v, d_res, for_loop_size);
+		// kernel_calc_2for<<<gang, vector>>>(k, m, d_i, d_j, d_x, d_v, d_res, for_loop_size);
 
 		// delta should be less than 512
 		// kernel_calc_with_shared<<<gang, vector>>>(k, m, d_i, d_j, d_x, d_v, d_res, for_loop_size);
