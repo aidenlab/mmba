@@ -1,4 +1,5 @@
-void utmvMul(int c, int **i,int **j,double **x,int *m,double *v,int k,double *res) {
+
+void utmvMulSerial(int c, int **i,int **j,double **x,int *m,double *v,int k,double *res) {
 	int ic,p;
 	for (p=0;p<k;p++) 
 		res[p] = 0;
@@ -10,3 +11,9 @@ void utmvMul(int c, int **i,int **j,double **x,int *m,double *v,int k,double *re
 		}
 }
 
+
+#ifndef BUILD_PYTHON_LIB
+void utmvMul(int c, int **i,int **j,double **x,int *m,double *v,int k,double *res) {
+	utmvMulSerial(c, i, j, x, m, v, k, res);
+}
+#endif

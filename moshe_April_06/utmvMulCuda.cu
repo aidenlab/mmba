@@ -7,10 +7,12 @@
 #include <cuda_runtime.h>
 
 
+#define UTMV_DEFAULT_VECTOR_SIZE 1024
+
 
 template<class T>
 __global__
-void kernel_res_init(int k, T *res) {
+void gpu_kernel_res_init(int k, T *res) {
 	int index = blockIdx.x * blockDim.x + threadIdx.x;
 	if(index >= k)
 		return;
@@ -39,7 +41,7 @@ double atomicAddDouble(double* address, double val)
 }
 
 __global__
-void kernel_main(int *m, int **i, int **j, double **x, double *v, double *res) {
+void gpu_kernel_utmv(int *m, int **i, int **j, double **x, double *v, double *res) {
 	int ic = blockIdx.x;
 	int *ii = i[ic];
 	int *jj = j[ic];
@@ -76,7 +78,7 @@ void kernel_main(int *m, int **i, int **j, double **x, double *v, double *res) {
 
 
 __global__
-void kernel_main_one_kernel_per_ic(int *m, int **i, int **j, double **x, double *v, double *res, int ic) {
+void gpu_kernel_utmv_one_kernel_per_ic(int *m, int **i, int **j, double **x, double *v, double *res, int ic) {
 	int *ii = i[ic];
 	int *jj = j[ic];
 	double *xx = x[ic];
@@ -173,25 +175,25 @@ void utmvCudaAlloc(int c, int **i, int **j, double **x, int *m, double *v, int k
 
 // #define ST_COUNT 8
 
-void utmvMul(int c, int **i, int **j, double **x, int *m, double *v, int k, double *res) {
+void utmvMulCuda(int c, int **i, int **j, double **x, int *m, double *v, int k, double *res) {
 	int vector, gang;
 
 	utmvCudaAlloc(c, i, j, x, m, v, k, res);
 
 	cudaMemcpy(d_v, v, sizeof(double) * k, cudaMemcpyDefault);
 
-	vector = 1024;
+	vector = UTMV_DEFAULT_VECTOR_SIZE;
 	gang = (k+vector-1) / vector;
-	kernel_res_init<double><<<gang, vector>>>(k, d_res);
+	gpu_kernel_res_init<double><<<gang, vector>>>(k, d_res);
 	// cudaDeviceSynchronize();
 
 
 /*
  * Considering all ic'es at once
  */
-	vector = 1024;
+	vector = UTMV_DEFAULT_VECTOR_SIZE;
 	gang = c;
-	kernel_main<<<gang, vector>>>(d_m, d_i, d_j, d_x, d_v, d_res);
+	gpu_kernel_utmv<<<gang, vector>>>(d_m, d_i, d_j, d_x, d_v, d_res);
 
 
 /*
@@ -205,7 +207,7 @@ void utmvMul(int c, int **i, int **j, double **x, int *m, double *v, int k, doub
 		cudaStreamCreate(&st[st_i]);
 	for(int ic = 0;ic < c;ic+=ST_COUNT) {
 		for(int qc=0;qc < ST_COUNT;qc++)
-			kernel_main_one_kernel_per_ic<<<gang, vector, 0, st[qc]>>>(d_m, d_i, d_j, d_x, d_v, d_res, ST_COUNT*ic + qc);
+			gpu_kernel_utmv_one_kernel_per_ic<<<gang, vector, 0, st[qc]>>>(d_m, d_i, d_j, d_x, d_v, d_res, ST_COUNT*ic + qc);
 	}
 	// cudaDeviceSynchronize();
 #endif
@@ -213,3 +215,8 @@ void utmvMul(int c, int **i, int **j, double **x, int *m, double *v, int k, doub
 	cudaMemcpy(res, d_res, sizeof(double) * k, cudaMemcpyDefault);
 }
 
+#ifndef BUILD_PYTHON_LIB
+void utmvMul(int c, int **i, int **j, double **x, int *m, double *v, int k, double *res) {
+	utmvMulCuda(c, i, j, x, m, v, k, res);
+}
+#endif

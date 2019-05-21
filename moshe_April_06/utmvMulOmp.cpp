@@ -4,7 +4,7 @@
 #include <string.h>
 
 
-void utmvMul(int c, int **i,int **j,double **x,int *m,double *v,int k,double *res) {
+void utmvMulOmp(int c, int **i,int **j,double **x,int *m,double *v,int k,double *res) {
 	int ic,p;
 
 	// #pragma omp parallel for private(p) firstprivate(res)
@@ -75,3 +75,9 @@ void utmvMul(int c, int **i,int **j,double **x,int *m,double *v,int k,double *re
 #endif
 }
 
+
+#ifndef BUILD_PYTHON_LIB
+void utmvMul(int c, int **i,int **j,double **x,int *m,double *v,int k,double *res) {
+	utmvMulOmp(c, i, j, x, m, v, k, res);
+}
+#endif
