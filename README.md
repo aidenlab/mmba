@@ -2,19 +2,20 @@
 
 Balance an upper triangular sparse matrix of any size (as long as you have enough RAM). Can do the entire genome at 1 kb resolution if sufficiently large percentage of "low" rows are excluded.
 
-There are two C functions in two files:
+There are three C functions in two files:
 
-- `zeroScale.c`: The function which performs matrix scaling; if the target vector is all 1 it performs matrix balancing.  
+- `simpleZero.c`: The function which performs matrix scaling; if the target vector is all 1 it performs matrix balancing.  
 It allows matrices with arbitrarily many nonzero elements. The only limit is the RAM size.  
-- `mainScale.c`: Driver function that calls `zeroScale`.
+- `simpleMain.c`: Driver function that calls `simpleZero`.
+- `simpleMul.c`: Performs matrix vector multiplication.
 
 The main function takes in several optional arguments:
-* **-m** the size of arrays that will be allocated; should be less than 2^31
+* **-m** the size of arrays that will be allocated; 
 * **-p** the percentage of low rows to be filtered out
 * **-q** the percentage of highest and lowest nonzero values in target vector to be filtered out
 * **-v** whether the main program should report anything (1 for yes, 0 for no)
 * **-s** whether scale should be run in a silent mode (1 for yes and 0 for no). If scale is run in silent mode (which may be desirable) it produces no output and the convergence report is printed by the main function
-* **-C** maximum number of arrays that may be allocated; note that `maxC`&#42;`m`&#42;16 should be less than your RAM size in bytes; only as many arrays as needed to store the matrix will be allocated
+size in bytes; only as many arrays as needed to store the matrix will be allocated
 * **-t** how small the relative error in row sums needs to be
 * **-d** the minimal percentage of decrease in row sums error at each iteration
 * **-f** for how many consecutive iterations the decrease may be below what is specified by -d
@@ -31,15 +32,15 @@ A comment:
 * I do not scale the bias vector to have mean/median of 1 but this is trivial to do.
 
 # Compiling
-`g++ -O3 -lm -o scale.a mainScale.c zeroScale.c`
+`g++ -O3 --std=c99 -lm -o simple.exe simpleMain.c simpleZero.c simpleMul.c`
 
 alternatively make a shared library by
 
-`g++ -O3 -shared -c -lm -fPIC -o scale.so zeroScale.c `
+`g++ -O3 --std=c99 -shared -c -lm -fPIC -o simpleZero.so simpleZero.c simpleMul.c`
 
 and then 
 
-`g++ -O3 -o scale.a mainScale.c scale.so`
+`g++ -O3 --std=c99 -o simple.exe simpleMain.c simpleZero.so`
 
 # Example of running 
 ```
@@ -50,11 +51,11 @@ awk 'BEGIN{m=0}$0!~/^#/{v=int($2/5000); a[v]+=$4; if (m<v){m=v}}END{for (i=0;i<=
 ./scale.a chr1_5Kb.txt chr1.out myfile.out
 ```
 
-`./scale.a hg19_chr1_1K.h5 chr1_1K.scal chr1_1K.bvec`  
+`./simple.exe hg19_chr1_1K.h5 chr1_1K.scal chr1_1K.bvec`  
 
 or  
 
-`./scale.a -m 2e8 hg19_chr1_1K.h5 chr1_1K.scal chr1_1K.bvec `
+`./simple.exe -m 2e8 hg19_chr1_1K.h5 chr1_1K.scal chr1_1K.bvec `
 
 # Utilities  
 - `sbuild_big.R`: an R script to create genome-wige contacts matrix (in sparse upper triangular form) from a .hic file. This version takes care of the case where __straw__ swaps thr order of input chromosomes. The user needs to edit the file and make the below changes before running the scriot:  
