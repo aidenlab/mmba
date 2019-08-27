@@ -4,13 +4,14 @@ Balance an upper triangular sparse matrix of any size (as long as you have enoug
 
 There are three C functions in two files:
 
-- `simpleZero.c`: The function which performs matrix scaling; if the target vector is all 1 it performs matrix balancing.  
+- `zeroMIPS1.c`: The function which performs matrix scaling; if the target vector is all 1 it performs matrix balancing.  
 It allows matrices with arbitrarily many nonzero elements. The only limit is the RAM size.  
-- `simpleMain.c`: Driver function that calls `simpleZero`.
-- `simpleMul.c`: Performs matrix vector multiplication.
+- `mainMIPS1.c`: Driver function that calls `simpleZero`.
+- `utmvMul1.c`: Performs matrix vector multiplication.
 
 The main function takes in several optional arguments:
-* **-m** the size of arrays that will be allocated; 
+* **-m** the size of arrays that will be allocated; must be < 2^31-1
+* **-c** the number of arrays that will be allocated; 
 * **-p** the percentage of low rows to be filtered out
 * **-q** the percentage of highest and lowest nonzero values in target vector to be filtered out
 * **-v** whether the main program should report anything (1 for yes, 0 for no)
@@ -32,15 +33,15 @@ A comment:
 * I do not scale the bias vector to have mean/median of 1 but this is trivial to do.
 
 # Compiling
-`g++ -O3 --std=c99 -lm -o simple.exe simpleMain.c simpleZero.c simpleMul.c`
+`g++ -O3 -lm -o MIPS1.exe mainMIPS1.c zeroMIPS1.c utmvMul1.c`
 
 alternatively make a shared library by
 
-`g++ -O3 --std=c99 -shared -c -lm -fPIC -o simpleZero.so simpleZero.c simpleMul.c`
+`g++ -O3 -shared -c -lm -fPIC -o MIPS1.so zeroMIPS1.c utmvMul1.c`
 
 and then 
 
-`g++ -O3 --std=c99 -o simple.exe simpleMain.c simpleZero.so`
+`g++ -O3 -o MIPS1.exe mainMIPS1.c MIPS1.so`
 
 # Example of running 
 ```
@@ -51,11 +52,11 @@ awk 'BEGIN{m=0}$0!~/^#/{v=int($2/5000); a[v]+=$4; if (m<v){m=v}}END{for (i=0;i<=
 ./scale.a chr1_5Kb.txt chr1.out myfile.out
 ```
 
-`./simple.exe hg19_chr1_1K.h5 chr1_1K.scal chr1_1K.bvec`  
+`./MIPS1.exe hg19_chr1_1K.h5 chr1_1K.scal chr1_1K.bvec`  
 
 or  
 
-`./simple.exe -m 2e8 hg19_chr1_1K.h5 chr1_1K.scal chr1_1K.bvec `
+`./MIPS1.exe -m 2e8 hg19_chr1_1K.h5 chr1_1K.scal chr1_1K.bvec `
 
 # Utilities  
 - `sbuild_big.R`: an R script to create genome-wige contacts matrix (in sparse upper triangular form) from a .hic file. This version takes care of the case where __straw__ swaps thr order of input chromosomes. The user needs to edit the file and make the below changes before running the scriot:  
