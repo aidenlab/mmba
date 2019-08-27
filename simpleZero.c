@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-void utmvMul(int c, int **i,int **j,float **x,int *m,float *v,int k,float *es);
+void utmvMul(int *i,int *j,float *x,long m,float *v,int k,float *res);
 
 //	this function is used to sort rows sums
 int cmpfunc (const void * a, const void * b) {
@@ -14,16 +14,11 @@ int cmpfunc (const void * a, const void * b);
 
 /********************************************************************************************************************
 *
-*	This function allows more that 2^31 - 1 nonzero entries. It acceptc a list of c arrays where array i contains m[i] elements
-*
+*	m is the number of nonzero elements
 
-*	c is the number of arrays
+*	i and j are 0-based arrays each containing the row and column indices of the nonzero bins
 
-*	m is array containing the number of elements of the c arrays
-
-*	i and j are lists of c 0-based arrays each containing the row and column indices of the nonzero bins
-
-*	x is a list of c arrays containing the nonzero matrix entries
+*	x is an array containing the nonzero matrix entries
 
 *
 *	i, j, and x define the upper triangle of the (squarre symmetric) matrix
@@ -59,18 +54,10 @@ int cmpfunc (const void * a, const void * b);
 *
 ***********************************************************************************************************************/
 
-int scale(int c, int *m,int **i,int **j,float **x, float *z,float *b, float *report,
-int verb, float tol,float perc,float perc1, int maxiter, float del,int trials) 
+int scale(long m,int *i,int *j,float *x, float *z,float *b, float *report,int verb, float tol,float perc,float perc1, int maxiter, float del,int trials) 
 {  
-	if (tol < 0) tol=1.0e-3;
-	if (perc < 0) perc=1.0e-2;
-	if (perc1 < 0) perc=0.25e-2;
-	if (maxiter < 0) maxiter=200;
-	if (verb < 0) verb=0;
-	if (del < 0) del=1.0e-2;
-	if (trials < 0) trials=5;
-
-	int k,p,ic,n;
+	long p;
+	int k,n;
 	float high, low;
 //	will be allocated so need to be freed
 	int *bad, lind, hind;
@@ -78,7 +65,7 @@ int verb, float tol,float perc,float perc1, int maxiter, float del,int trials)
 
 //	find the matrix dimensions
 	k = 0;
-	for (ic=0;ic<c;ic++) for (p=0; p<m[ic];p++) if (j[ic][p] > k) k=j[ic][p];
+	for (p=0; p<m;p++) if (j[p] > k) k=j[p];
 	k++;
 	float *current = (float *) malloc(k*sizeof(float));
 	row = (float *) malloc(k*sizeof(float));
@@ -110,10 +97,10 @@ int verb, float tol,float perc,float perc1, int maxiter, float del,int trials)
 	for (p=0;p<k;p++) if (z[p] == 0) one[p] = 0;
 
 	for (p=0;p<k;p++) bad[p] = 1;
-	for (ic=0;ic<c;ic++) for (p=0;p<m[ic];p++) if (i[ic][p] == j[ic][p]) bad[i[ic][p]] = 0;
+	for (p=0;p<m;p++) if (i[p] == j[p]) bad[i[p]] = 0;
 
 //	find rows sums
-	utmvMul(c,i,j,x,m,one,k,row);
+	utmvMul(i,j,x,m,one,k,row);
 
 //	find relevant percentiles
 	for (p=0; p<k;p++) r0[p] = row[p];
@@ -156,13 +143,13 @@ int verb, float tol,float perc,float perc1, int maxiter, float del,int trials)
 		for (p=0;p<k;p++) s[p] = z[p]/row[p];
 		for (p=0;p<k;p++) dr[p] *= s[p];
 	
-		utmvMul(c,i,j,x,m,dr,k,col);
+		utmvMul(i,j,x,m,dr,k,col);
 		for (p=0;p<k;p++) col[p] *= dc[p];
 		for (p=0;p<k;p++) if (bad1[p] == 1) col[p] = 1.0;
 		for (p=0;p<k;p++) s[p] = z[p]/col[p];
 		for (p=0;p<k;p++) dc[p] *= s[p];
 
-		utmvMul(c,i,j,x,m,dc,k,row);
+		utmvMul(i,j,x,m,dc,k,row);
 		for (p=0;p<k;p++) row[p] *= dr[p];
 
 		for (p=0;p<k;p++) b[p] = sqrt(dr[p]*dc[p]);
@@ -176,14 +163,14 @@ int verb, float tol,float perc,float perc1, int maxiter, float del,int trials)
 		report[iter-1]=ber;
 		if (verb) printf("%d: %30.15lf\n",iter,ber);
 		if (iter % 10 == 0) {
-			utmvMul(c,i,j,x,m,b,k,col);
+			utmvMul(i,j,x,m,b,k,col);
 			err = 0;
 			for (p=0;p<k;p++) {
 				if (bad1[p] == 1) continue;
 				if (err < fabs(col[p]*b[p] - z[p])) err = fabs(col[p]*b[p] - z[p]);
 			}
+			if (verb) printf("the error is %30.15f\n",err);
 		}
-		if (verb) printf("the error is %30.15f\n",err);
 
 		for (p=0;p<k;p++) current[p] = b[p];
 		if (iter < trials+2) continue;
@@ -192,16 +179,15 @@ int verb, float tol,float perc,float perc1, int maxiter, float del,int trials)
 		if (stuck >= trials) break;
 	}
 
-	utmvMul(c,i,j,x,m,b,k,col);
+	utmvMul(i,j,x,m,b,k,col);
 	err = 0;
 	for (p=0;p<k;p++) {
 		if (bad1[p] == 1) continue;
 		if (err < fabs(col[p]*b[p] - z[p])) err = fabs(col[p]*b[p] - z[p]);
 	}
-	printf("the error is %30.15f\n",err);
+	if (verb) printf("the error is %30.15f\n",err);
 	report[maxiter+1] = ber;
-        report[maxiter+2] = err;
-
+	report[maxiter+2] = err;
 
 	for (p=0;p<k;p++) if (bad[p] == 1) b[p] = NAN;
 	free(bad);
