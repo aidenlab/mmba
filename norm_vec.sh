@@ -1,21 +1,5 @@
-if [[ $# -ne 2 && $# -ne 1 ]]
-then
-    echo "Usage: $0 wigFile [res]"
-    echo "  e.g. $0 GSM733752_hg19_wgEncodeBroadHistoneGm12878CtcfStdSig.wig 1000"
-    echo "  all resolutions will be used if res not given"
-    exit
-fi
+x=`awk -v res=$2 'BEGIN {print res/1000}'`
+bedtools makewindows -g $3 -w $2 > hg19_${x}kb_windows.bed
+bedtools map -a hg19_${x}kb_windows.bed -b $1 -c 4 -o sum | awk -v res=$2 'BEGIN{FS="\t";OFS="\t"}($4=="."){print$1,$2,$3,$4}($4!="."){print $1,$2,$3,1/($4/res*25)}' >GM12878_${x}kb_CTCF_pre_normvector_1over.bed
+awk -v res=$2 -f ./insert_norm_vector.awk GM12878_${x}kb_CTCF_pre_normvector_1over.bed | awk '$0~/^vector/{print $0; next}{print $4}' > GM12878_${x}kb_CTCF_normvector_1over.txt
 
-if [[ $# -eq 1 ]]
-then
-    resolutions="5000 10000 25000 50000 100000 250000 500000 1000000 2500000"
-else
-    resolutions=$2
-fi
-
-
-rm -f ${1}.out
-for res in $resolutions
-do
-    awk -v res=$res -v bw=$1 'BEGIN{OFS="\t"; m=-1}$0!~/^#/{if ($1!=chr){for (i=0;i<=m;i++){if (i in a){val=a[i]*25/res; print 1/val;}else{print "NaN"}} delete a; m=0; chr=$1; print "vector", bw, chr, res, "BP";} v=int($2/res); a[v]+=$4; if (m<v){m=v}}END{for (i=0;i<=m;i++){if (i in a){val=a[i]*25/res; print 1/val;}else{print "NaN"}}}' $1 >> $1.out
-done
