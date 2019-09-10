@@ -1,16 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <real.h>
 
-void utmvMul(int *i,int *j,float *x,long m,float *v,int k,float *res);
+void utmvMul(int *i,int *j,real *x,long m,real *v,int k,real *res);
 
 //	this function is used to sort rows sums
 int cmpfunc (const void * a, const void * b) {
-   if ( *(float*)a < *(float*)b ) return -1;
-   if ( *(float*)a > *(float*)b ) return 1;
+   if ( *(real*)a < *(real*)b ) return -1;
+   if ( *(real*)a > *(real*)b ) return 1;
    return(0);
 }
-int cmpfunc (const void * a, const void * b);
 
 /********************************************************************************************************************
 *
@@ -54,38 +54,38 @@ int cmpfunc (const void * a, const void * b);
 *
 ***********************************************************************************************************************/
 
-int scale(long m,int *i,int *j,float *x, float *z,float *b, float *report,int verb, float tol,float perc,float perc1, int maxiter, float del,int trials) 
+int scale(long m,int *i,int *j,real *x, real *z,real *b, real *report,int verb, real tol,real perc,real perc1, int maxiter, real del,int trials,int zerodiag) 
 {  
 	long p;
 	int k,n;
-	float high, low;
+	real high, low;
 //	will be allocated so need to be freed
 	int *bad, lind, hind;
-	float *row, *col, *dr, *dc, *r0, *s, *one, *zz;	
+	real *row, *col, *dr, *dc, *r0, *s, *one, *zz;	
 
 //	find the matrix dimensions
 	k = 0;
 	for (p=0; p<m;p++) if (j[p] > k) k=j[p];
 	k++;
-	float *current = (float *) malloc(k*sizeof(float));
-	row = (float *) malloc(k*sizeof(float));
-	col = (float *) malloc(k*sizeof(float));
-	dr = (float *) malloc(k*sizeof(float));
-	dc = (float *) malloc(k*sizeof(float));
-	r0 = (float *) malloc(k*sizeof(float));
+	real *current = (real *) malloc(k*sizeof(real));
+	row = (real *) malloc(k*sizeof(real));
+	col = (real *) malloc(k*sizeof(real));
+	dr = (real *) malloc(k*sizeof(real));
+	dc = (real *) malloc(k*sizeof(real));
+	r0 = (real *) malloc(k*sizeof(real));
 	bad = (int *) malloc(k*sizeof(int));
 	int *bad1 = (int *) malloc(k*sizeof(int));
-	one = (float *) malloc(k*sizeof(float));
-	s = (float *) malloc(k*sizeof(float));
-	zz = (float *) malloc(k*sizeof(float));
+	one = (real *) malloc(k*sizeof(real));
+	s = (real *) malloc(k*sizeof(real));
+	zz = (real *) malloc(k*sizeof(real));
 	int l = 0;
 	for (p=0;p<k;p++) {
 		if (isnan(z[p])) continue; 
 		if (z[p] > 0) zz[l++] = z[p];
 	}
-	qsort(zz,l,sizeof(float),cmpfunc);
-	lind = (int)(((float) l)*perc1+0.5);
-	hind = (int)(((float) l)*(1.0-perc1)+0.5);
+	qsort(zz,l,sizeof(real),cmpfunc);
+	lind = (int)(((real) l)*perc1+0.5);
+	hind = (int)(((real) l)*(1.0-perc1)+0.5);
 	if (lind < 0) lind = 0;
 	if (hind >= l) hind = l-1;
 	low = zz[lind];
@@ -94,21 +94,25 @@ int scale(long m,int *i,int *j,float *x, float *z,float *b, float *report,int ve
 	for (p=0;p<k;p++) if (z[p] > 0 && (z[p] < low || z[p] > high)) z[p] = NAN;
 
 	for (p=0;p<k;p++) one[p] = 1.0;
-	for (p=0;p<k;p++) if (z[p] == 0) one[p] = 0;
+        for (p=0;p<k;p++) if (z[p] == 0) one[p] = 0;
 
-	for (p=0;p<k;p++) bad[p] = 1;
-	for (p=0;p<m;p++) if (i[p] == j[p]) bad[i[p]] = 0;
+	if (zerodiag == 1) {
+		for (p=0;p<k;p++) bad[p] = 1;
+		for (p=0;p<m;p++) if (i[p] == j[p]) bad[i[p]] = 0;
+	} else {
+		for (p=0;p<k;p++) bad[p] = 0;
+	}
 
 //	find rows sums
 	utmvMul(i,j,x,m,one,k,row);
 
 //	find relevant percentiles
 	for (p=0; p<k;p++) r0[p] = row[p];
-	qsort(r0,k,sizeof(float),cmpfunc);
+	qsort(r0,k,sizeof(real),cmpfunc);
 	n = 0;
 	for (p=0;p<k;p++) if (r0[p] == 0) n++;
-	lind = n-1 + (int)(((float)(k-n))*perc+0.5);
-        hind = n-1 + (int)(((float)(k-n))*(1.0-0.1*perc)+0.5);
+	lind = n-1 + (int)(((real)(k-n))*perc+0.5);
+        hind = n-1 + (int)(((real)(k-n))*(1.0-0.1*perc)+0.5);
 
 	if (lind < 0) lind = 0;
         if (hind >= k) hind = k-1;
@@ -133,12 +137,13 @@ int scale(long m,int *i,int *j,float *x, float *z,float *b, float *report,int ve
 	
 //	start iterations
 //	row is the current rows sum; s is the correction vector to be applied to rows and columns
-	float ber = 10.0*(1.0+tol);
+	real ber = 10.0*(1.0+tol);
+	real err = 10.0*(1.0+tol);
 	int iter=0;
 	int stuck=0;
 	for (p=0;p<k;p++) current[p] = sqrt(dr[p]*dc[p]);
-	float err;
-	while((ber > tol || err > 5.0*tol) && iter++ < maxiter) {
+	while((ber > tol || err > 5.0*tol) && iter < maxiter) {
+		iter++;
 		for (p=0;p<k;p++) if (bad1[p] == 1) row[p] = 1.0;
 		for (p=0;p<k;p++) s[p] = z[p]/row[p];
 		for (p=0;p<k;p++) dr[p] *= s[p];
@@ -174,7 +179,7 @@ int scale(long m,int *i,int *j,float *x, float *z,float *b, float *report,int ve
 
 		for (p=0;p<k;p++) current[p] = b[p];
 		if (iter < trials+2) continue;
-		if (ber > (1.0-del)*report[iter-2]) stuck++;
+		if (ber > (1.0-del)*report[iter-2]) stuck++; 
 		else stuck = 0;
 		if (stuck >= trials) break;
 	}
@@ -200,7 +205,7 @@ int scale(long m,int *i,int *j,float *x, float *z,float *b, float *report,int ve
 	free(dc);
 	free(s);
 	
-	if (ber > tol) return(-iter);	
+	if (ber > tol || err > 5.0*tol) return(-iter);	
 	else return(iter);	
 }
 

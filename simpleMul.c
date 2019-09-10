@@ -1,4 +1,6 @@
-void utmvMul(int *i,int *j,float *x,long m,float *v,int k,float *res) {
+#include <real.h>
+
+void utmvMul(int *i,int *j,real *x,long m,real *v,int k,real *res) {
 	long p;
 	for (p=0;p<k;p++) res[p] = 0;
 	for (p=0;p<m;p++) {
