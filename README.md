@@ -8,6 +8,7 @@ There are three C functions in two files:
 It allows matrices with arbitrarily many nonzero elements. The only limit is the RAM size.  
 - `simpleMain.c`: Driver function that calls `simpleZero`.
 - `simpleMul.c`: Performs matrix vector multiplication.
+- `real.h`: to easily switch between float and double values
 
 The main function takes in several optional arguments:
 * **-m** the size of arrays that will be allocated; 
@@ -20,6 +21,7 @@ size in bytes; only as many arrays as needed to store the matrix will be allocat
 * **-d** the minimal percentage of decrease in row sums error at each iteration
 * **-f** for how many consecutive iterations the decrease may be below what is specified by -d
 * **-a** if there was no convergence, how many times to rerun scale each time increasing perc and perc1 by 50%; the 50% increase is still hard coded.
+* **-z** whether to remove rows with zero diagonal; 1 (default) means remove, 0 means do not remove
   
 
 Mandatory command line arguments:  
@@ -32,11 +34,13 @@ A comment:
 * I do not scale the bias vector to have mean/median of 1 but this is trivial to do.
 
 # Compiling
-`g++ -O3 --std=c99 -lm -o simple.exe simpleMain.c simpleZero.c simpleMul.c`
+copy real.h  to the current directory and then
+
+`g++ -O3 --std=c99 -lm -I. -o simple.exe simpleMain.c simpleZero.c simpleMul.c`
 
 alternatively make a shared library by
 
-`g++ -O3 --std=c99 -shared -c -lm -fPIC -o simpleZero.so simpleZero.c simpleMul.c`
+`g++ -O3 --std=c99 -shared -c -lm -fPIC -I. -o simpleZero.so simpleZero.c simpleMul.c`
 
 and then 
 
@@ -55,7 +59,7 @@ awk 'BEGIN{m=0}$0!~/^#/{v=int($2/5000); a[v]+=$4; if (m<v){m=v}}END{for (i=0;i<=
 
 or  
 
-`./simple.exe -m 2e8 hg19_chr1_1K.h5 chr1_1K.scal chr1_1K.bvec `
+`./simple.exe -m 7e9 -z 1 hg19_chr1_1K.h5 chr1_1K.scal chr1_1K.bvec `
 
 # Utilities  
 - `sbuild_big.R`: an R script to create genome-wige contacts matrix (in sparse upper triangular form) from a .hic file. This version takes care of the case where __straw__ swaps thr order of input chromosomes. The user needs to edit the file and make the below changes before running the scriot:  
