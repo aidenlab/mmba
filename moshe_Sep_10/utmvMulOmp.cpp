@@ -18,19 +18,19 @@ void utmvMulOmp(int *i,int *j,real *x,long m,real *v,int k,real *res) {
 /*
  * Normal approach
  */
-#if 0
+// #if 0
 	#pragma omp parallel for firstprivate(x,v,i,j) private(p) reduction(+:res[0:k]) 
 	for (p=0;p<m;p++) {
 		res[i[p]] += x[p]*v[j[p]];
 		res[j[p]] += x[p]*v[i[p]];
 	}
-#endif
+// #endif
 
 
 /* 
  * Using extra arrays to minimize the cache thrashing effect
  */
-// #if 0
+#if 0
 	#pragma omp parallel firstprivate(x,v,i,j) private(p) reduction(+:res[0:k]) 
 	{
 		real *res2;
@@ -50,7 +50,7 @@ void utmvMulOmp(int *i,int *j,real *x,long m,real *v,int k,real *res) {
 		// #pragma omp critical
 		free(res2);
 	}
-// #endif
+#endif
 
 }
 
