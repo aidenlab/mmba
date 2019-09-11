@@ -167,8 +167,10 @@ int main(int argc, char *argv[]) {
 
   for (p=0; p<m;p++) if (j[p] == i[p]) x[p] *= 0.5;
 
-  z = (real *) malloc((2*k+1000)*sizeof(real));
-  z0 = (real *) malloc((2*k+1000)*sizeof(real));
+  // z = (real *) malloc((2*k+1000)*sizeof(real));
+  // z0 = (real *) malloc((2*k+1000)*sizeof(real));
+  z = (real *) malloc(m*sizeof(real));
+  z0 = (real *) malloc(m*sizeof(real));
 
   n = 0;
   while(fscanf(finV,"%f",&z0[n]) == 1) n++;
@@ -177,7 +179,8 @@ int main(int argc, char *argv[]) {
 	n = k;
   }
   for (p=0;p<n;p++) z[p] = z0[p];
-  real *b = (real *) malloc((2*k+1)*sizeof(real));
+  // real *b = (real *) malloc((2*k+1)*sizeof(real));
+  real *b = (real *) malloc((n+1)*sizeof(real));
   for (p=0;p<n;p++) b[p] = NAN;
   fclose(finV);
 
