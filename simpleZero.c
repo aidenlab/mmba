@@ -130,8 +130,8 @@ int scale(long m,int *i,int *j,real *x, real *z,real *b, real *report,int verb, 
 	}
 
 	for (p=0;p<k;p++) dr[p] = 1.0 - bad[p];
-	for (p=0;p<k;p++) dc[p] = 1.0 - bad[p];
-	for (p=0;p<k;p++) one[p] = 1.0 - bad[p];
+	for (p=0;p<k;p++) dc[p] = dr[p];
+	for (p=0;p<k;p++) one[p] = dr[p];
 	for (p=0;p<k;p++) if (z[p] == 0) one[p] = 0;
 	for (p=0;p<k;p++) bad1[p] = 1.0 - one[p];
 	
@@ -141,7 +141,7 @@ int scale(long m,int *i,int *j,real *x, real *z,real *b, real *report,int verb, 
 	real err = 10.0*(1.0+tol);
 	int iter=0;
 	int stuck=0;
-	for (p=0;p<k;p++) current[p] = sqrt(dr[p]*dc[p]);
+	for (p=0;p<k;p++) current[p] = dr[p];
 	while((ber > tol || err > 5.0*tol) && iter < maxiter) {
 		iter++;
 		for (p=0;p<k;p++) if (bad1[p] == 1) row[p] = 1.0;
