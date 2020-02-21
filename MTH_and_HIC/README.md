@@ -12,7 +12,7 @@ Pay attention to -z flag. Do not use it or specify -z 0 to be consistent with KR
 The other (and more recommended) set of functions reads the contacts matrix, chromosome sizes, etc. directly from the hic file. To dio so it uses straw.cpp (and straw.h) from the straw project (which need to be downloaded as well).  
 To create an executable do:  
 g++ -O --std=c++0x -o createNormVector.exe createNormVector.cpp getMatrix.cpp straw.cpp hicScale.c thMul.c -I. -lz -lcurl -lpthread  
-The run  
+Then run  
 ./createNormVector.exe  
 to see the help message.  
 Note that now the target vector is optional. If present, scaling to this vector is performed, if absent, balancing is performed.  
