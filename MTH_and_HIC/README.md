@@ -9,9 +9,9 @@ for short help.
 Pay attention to -z flag. Do not use it or specify -z 0 to be consistent with KR; put -z 1 to remove rows with 0 on the diagonal;  
 -T specifies the number of threads (default is 1). For large files this can speed up the computation significantly.
 
-The other (and more recommended) set of functions reads the contacts matrix, chromosome sizes, etc. directly from the hic file. To dio so it uses straw.cpp (and straw.h) from the straw project (which need to be downloaded as well).  
+The other (**and more recommended**) set of functions reads the contacts matrix, chromosome sizes, etc. directly from the hic file. To dio so it uses straw.cpp (and straw.h) from the straw project (which need to be downloaded as well).  
 To create an executable do:  
-g++ -O --std=c++0x -o createNormVector.exe createNormVector.cpp getMatrix.cpp straw.cpp hicScale.c thMul.c -I. -lz -lcurl -lpthread  
+**g++ -O --std=c++0x -o createNormVector.exe createNormVector.cpp getMatrix.cpp straw.cpp hicScale.c ppNormVector.c thMul.c -I. -lz -lcurl -lpthread**  
 Then run  
 ./createNormVector.exe  
 to see the help message.  
