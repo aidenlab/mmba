@@ -12,6 +12,8 @@ int scale(long m,int *i,int *j,float *x, float *z,float *b, float *report, int *
 
 int getMatrix(string fname, int binsize, string norm, int **i, int **j, float **x, long *m, vector<std::string> &CH,vector<int> &CHL);
 
+double ppNormVector(int m,int *ii,int *jj,float *xx, float *b,int k, int threads, float **space);
+
 static void usage(const char *argv0)
 {
   fprintf(stderr, "Usage: %s [-p percent][-P delta_p][-q percent1][-Q delta_q][-v verbose][-t tol][-I max_iterations][-z remove_zero_diag][-d delta][-A All_iterations][-T threads] <hicfile> <resolution> <outfile> <[vector_file]>\n", argv0);
@@ -165,22 +167,11 @@ int main(int argc, char *argv[]) {
 	if (verb) printf("total %d iterations; final perc = %g and perc1 = %g\n",totalIt,perc,perc1);
 	if (verb) printf("final error in scaling vector is %g and in row sums is %g\n",report[totalIt+1],report[totalIt+2]);
 
-	int n=0;
-	double s=0;
+	float **space = (float **) malloc(threads*sizeof(float *));
+	for (p=0;p<threads; p++) space[p] = (float *) malloc(k*sizeof(float));
+	double sum = ppNormVector(m,ii,jj,xx,b,k,threads,space);
 
-	for (p=0;p<k;p++) {
-		if (!isnan(b[p])) { 
-			b[p] = 1.0/b[p];
-			n++;
-			s+=b[p];
-		}
-	}
-	s = ((double) n)/s;
-	for (p=0;p<k;p++) {
-		if (!isnan(b[p])) b[p] *= s;
-	}
-
-	n = 0;
+	int n = 0;
 	for (int i=0; i<chroms.size(); i++) {
 		fprintf(fout,"vector %s %s %d BP\n",const_cast<char*> (norm_name.c_str()),const_cast<char*> (chroms.at(i).c_str()),binsize);
 		for (int j=0;j< ((int) ceil(chrLen.at(i)/((double) binsize)));j++) {
