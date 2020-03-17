@@ -5,7 +5,7 @@
 #include <sys/timeb.h>
 #include <time.h>
 
-int scale(long m,int *i,int *j,float *x, float *z,float *b, float *report, int *iters, float tol,float *pppp,float *pppp1, int maxiter, int zerodiag, float del, float dp, float dp1, int *totalIt, int threads);
+int scale(long m,int *i,int *j,float *x, float *z,float *b, float *report, int *iters, float tol,float *pppp,float *pppp1, int maxiter, int zerodiag, float del, float dp, float dp1, int *totalIt, int threads, int k);
 
 static void usage(const char *argv0)
 {
@@ -156,8 +156,8 @@ int main(int argc, char *argv[]) {
   }
    
   for (p=0;p<m;p++) {
-    i[p]--;
-    j[p]--;
+	i[p]--;
+	j[p]--;
   }
   ftime(&t1);
   fclose(fin);
@@ -187,7 +187,7 @@ int main(int argc, char *argv[]) {
   int *allIters = (int *) malloc((All_iter+3+100)*sizeof(int));
   
   ftime(&t1);
-  iter = scale(m,i,j,x, z,b, report,allIters, tol,&perc,&perc1, maxiter, zerodiag, del, dp, dp1, &totalIt,threads);
+  iter = scale(m,i,j,x, z,b, report,allIters, tol,&perc,&perc1, maxiter, zerodiag, del, dp, dp1, &totalIt,threads, k);
 
   ftime(&end);
   if (verb) {
