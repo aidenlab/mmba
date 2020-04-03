@@ -142,14 +142,14 @@ int main(int argc, char *argv[]) {
 	float *z = (float *) malloc(k*sizeof(float));
 	string norm_name;
 	if (scaling) {
-		norm_name = "GW_SCAL";
+		norm_name = "SCAL";
 		int n = 0;
 		while(fscanf(fscal,"%f",&z[n]) == 1 && n < k) n++;
 		if (n < k) for (p=n;p<k;p++) z[p] = NAN;
 		fclose(fscal);
 	}
 	else {
-		norm_name = "GW_BAL";
+		norm_name = "BAL";
 		for (p=0;p<k;p++) z[p] = 1.0;
 		perc1 = 0;
 		dp1 = 0;	
@@ -167,7 +167,7 @@ int main(int argc, char *argv[]) {
 	ftime(&t1);
 
 	if (verb) printf("iterations took %15.10lf seconds\n",((float) (t1.time - t0.time)) + 0.001*(t1.millitm - t0.millitm));
-	for (p=0;p<totalIt;p++) printf("%d: %30.15lf\n",allIters[p],report[p]);
+	if (verb > 1) for (p=0;p<totalIt;p++) printf("%d: %30.15lf\n",allIters[p],report[p]);
 	if (verb) printf("total %d iterations; final perc = %g and perc1 = %g\n",totalIt,perc,perc1);
 	if (verb) printf("final error in scaling vector is %g and in row sums is %g\n",report[totalIt+1],report[totalIt+2]);
 
