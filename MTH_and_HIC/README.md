@@ -30,6 +30,18 @@ Then run
 **./createNormVectorIntraSingle.exe**  
 to see help message.  
 
+The flags are:  
+**-p**: fraction of nonzerp rows to remove, e.g. -p 0.005 to remove 0.5% of the rows; default: 0.01 but it is better to use a smaller number, say 1.0e-3 or even 1.4e-4 (will be updated automatically if there is no convergence).  
+**-P**: delta_p - by how much to increase **p** if there is no convergence; default is 0.5e-2. Better to make it 0.5*p.  
+**-q** and **-Q**: like **p** and **P** but for the percentage of lowest and highest values in the target vector to remove (for scaling only - ignored for balancing); default: 0.25e-2 and 1.0e-3.  
+**-I**: maximum iterations (before updating **p** and **q**); default: 100; set it to a higher number if needed.  
+**-A**: maximum total number of iterations; default: 200; set to a higher value if needed.  
+**-T**: number of threads to use; default: 1; a very significant speed up is achieved with higher values (12 or 16 for really large data sets).  
+**-z**: whether to remove rows with 0 at the diagonal (1 for yes, 0 for no); default: 0.  
+**-t**: tolerance (stopping criterion); default: 5.0e-4; don't make it less than 1.0e-5 since we are using single precision (float).  
+**-v**: how much output to print; 0 - no output, 1 (default) - summary; 2 - each iteration. 
+
+
 
 
 
