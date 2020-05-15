@@ -23,4 +23,5 @@ jobs:
     - name: build
       run: |
         cd MTH_and_HIC
-        g++ -O --std=c++0x -o createNormVectorIntra.exe createNormVectorIntra.cpp bestHicScale.c ppNormVector.c straw.cpp thMul.c getHiCInfo.cpp -I. -lz -lcurl -lpthread
+        g++ -O --std=c99 -o thScale.exe thMain.c bestHicScale.c thMul.c -lpthread
+
