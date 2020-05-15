@@ -19,13 +19,14 @@ jobs:
         sudo apt-get install libpthread-stubs0-dev
         sudo apt-get install curl
         sudo apt-get install zlib1g-dev
+        sudo apt-get install libcurl4-openssl-dev
+        sudo apt-get update
 
     - name: build thScale.exe
       run: |
         cd MTH_and_HIC
         g++ -O --std=c99 -o thScale.exe thMain.c bestHicScale.c thMul.c -lpthread
-        
-        
+
     - name: build createNormVector.exe
       run: |
         cd MTH_and_HIC
