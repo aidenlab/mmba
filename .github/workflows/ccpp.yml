@@ -15,5 +15,6 @@ jobs:
     - uses: actions/checkout@v2
     - name: configure
       run: |
+        cd MTH_and_HIC
         g++ -O3 --std=c99 -shared -c -lm -fPIC -I. -o simpleZero.so simpleZero.c simpleMul.c
         g++ -O3 --std=c99 -o simple.exe simpleMain.c simpleZero.so
