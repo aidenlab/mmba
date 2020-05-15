@@ -14,10 +14,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: configure
-      run: ./configure
-    - name: make
-      run: make
-    - name: make check
-      run: make check
-    - name: make distcheck
-      run: make distcheck
+      run: |
+        g++ -O3 --std=c99 -shared -c -lm -fPIC -I. -o simpleZero.so simpleZero.c simpleMul.c
+        g++ -O3 --std=c99 -o simple.exe simpleMain.c simpleZero.so
