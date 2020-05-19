@@ -125,7 +125,8 @@ int scale(long m,int *i,int *j,float *x, float *z,float *b, float *report,int *a
         low = r0[lind];
 //	find rows which are identically 0 and the perc proportion of rows with the lowest row sums and exclude them
 	for (p=0;p<k;p++) {
-		if ((nz[p] <= low  && z[p] > 0) || isnan(z[p])) {
+//		if ((nz[p] <= low  && z[p] > 0) || isnan(z[p])) {
+		if ((nz[p] < low  && z[p] > 0) || isnan(z[p])) {
 			bad[p] = 1;
 			z[p] = 1.0;
 		}
