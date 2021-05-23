@@ -12,11 +12,11 @@ int scale(long m,int *i,int *j,float *x, float *z,float *b, float *report, int *
 
 int getHiCInfo(string fname, vector<std::string> &CH,vector<int> &CHL);
 
-double ppNormVector(int m,int *ii,int *jj,float *xx, float *b,int k, int threads, float **space);
+double ppNormVector(long m,int *ii,int *jj,float *xx, float *b,int k, int threads, float **space);
 
 static void usage(const char *argv0)
 {
-  fprintf(stderr, "Usage: %s [-p percent][-P delta_p][-v verbose][-t tol][-I max_iterations][-z remove_zero_diag][-d delta][-A All_iterations][-T threads] <hicfile> <resolution> <outfile>\n", argv0);
+  fprintf(stderr, "Usage: %s [-o oe] [-p percent][-P delta_p][-v verbose][-t tol][-I max_iterations][-z remove_zero_diag][-d delta][-A All_iterations][-T threads] <hicfile> <resolution> <outfile>\n", argv0);
   fprintf(stderr, "  <hicfile>: hic file\n");
   fprintf(stderr, "  <resolution>: resolution in bp\n");
   fprintf(stderr, "  <outfile>: normalization vector output  file\n");
@@ -25,6 +25,7 @@ static void usage(const char *argv0)
 int main(int argc, char *argv[]) {
 	string norm("NONE");
 	string unit("BP");
+	string matrix("observed");
 	string norm_name("INTRA_BAL");
 	struct timeb t0,t1,start,end;
 
@@ -43,8 +44,15 @@ int main(int argc, char *argv[]) {
 
 	ftime(&start);
 
-	while ((opt = getopt(argc, argv, "m:p:P:v:t:d:I:z:A:T:h")) != -1) {
+	while ((opt = getopt(argc, argv, "o:m:p:P:v:t:d:I:z:A:T:h")) != -1) {
 		switch (opt) {
+				case 'o':
+					if (strcmp(optarg,"oe") == 0) matrix = "oe";
+					else {
+						usage(argv[0]);
+						exit(EXIT_FAILURE);
+					}
+					break;
 				case 'p':
 					perc0 = atof(optarg);
 					break;
@@ -122,7 +130,7 @@ int main(int argc, char *argv[]) {
 //	loop accross all chromosomes
         for (i=0; i<chroms.size(); i++) {
 		ftime(&t0);
-        	records = straw(norm, fname, chroms.at(i), chroms.at(i), unit, binsize);
+        	records = straw(matrix,norm, fname, chroms.at(i), chroms.at(i), unit, binsize);
         	m = records.size();
 		ii = (int *) malloc(m*sizeof(int));
 		jj = (int *) malloc(m*sizeof(int));

@@ -3,11 +3,11 @@
 
 void utmvMul(int *i,int *j,float *x,long m,float *v,int k,float *res, int threads, float **space);
 
-double ppNormVector(int m,int *ii,int *jj,float *xx, float *b,int k, int threads, float **space) {
+double ppNormVector(long m,int *ii,int *jj,float *xx, float *b,int k, int threads, float **space) {
 	double s1,s2;
-	float *one = (float *) malloc(k*sizeof(double));
-	float *u = (float *) malloc(k*sizeof(double));
-	float *v = (float *) malloc(k*sizeof(double));
+	float *one = (float *) malloc(k*sizeof(float));
+	float *u = (float *) malloc(k*sizeof(float));
+	float *v = (float *) malloc(k*sizeof(float));
 	int i;
 	long p;
 	for (p=0;p<k;p++) if (b[p] == 0) b[p] = NAN;

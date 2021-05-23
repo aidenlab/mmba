@@ -12,7 +12,7 @@ int scale(long m,int *i,int *j,float *x, float *z,float *b, float *report, int *
 
 int getMatrix(string fname, int binsize, string norm, int **i, int **j, float **x, long *m, string chr);
 
-double ppNormVector(int m,int *ii,int *jj,float *xx, float *b,int k, int threads, float **space);
+double ppNormVector(long m,int *ii,int *jj,float *xx, float *b,int k, int threads, float **space);
 
 static void usage(const char *argv0)
 {
