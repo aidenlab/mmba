@@ -1,4 +1,11 @@
-Multi-thread functions for GW balancing or scaling of HiC contacts matrix.
+Balancing functions and main programs for per chromosome and GW balancing of HiC files. For GW balancing it is now possible to choose between INTER only or full GW matrix.
 
-It comes in two flavours: either reads the GW contacts matrix from a file in sparse matrix format (bin_i, bin_j, count) or extracts it (with some additional information) from a hic file.
+To build executable which balances a single chromosome based on our SCALE:
 
+**g++ -O2 --std=c++14 -o singleSK.exe d_balanceSingle.cpp getSingleMatrix.cpp d_SKBalance.c d_thMul.c d_ppNormVector.c ~/BCM/straw/C++/straw.cpp -I/home/moshe/BCM/straw/C++ -lz -lcurl -lpthread**
+
+Run
+
+**./singleSK.exe**
+
+to see the usage.
