@@ -9,3 +9,15 @@ Run
 **./singleSK.exe**
 
 to see the usage.
+
+
+To build executable which balances a single chromosome based on Ruiz and Uçar symmetry preserving algorithm:
+
+**g++ -O2 --std=c++14 -o singleRU.exe d_balanceSingle.cpp getSingleMatrix.cpp d_RUBalance.c d_thMul.c d_ppNormVector.c ~/BCM/straw/C++/straw.cpp -I/home/moshe/BCM/straw/C++ -lz -lcurl -lpthread**
+
+Run
+
+**./singleRU.exe**
+
+to see the usage.
+
