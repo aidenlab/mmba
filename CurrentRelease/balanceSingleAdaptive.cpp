@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
 	time_t t0,t1;
 
 	string ob("observed");
-	string norm_name("BAL");
+	string norm_name("SCALA");
 	double tol=1.0e-4;
 	double del=0.5e-1;
 	double perc = 1.0e-2;
