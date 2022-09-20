@@ -260,6 +260,7 @@ next:		ber = 10.0;
 	junk = 0;
 	while (nz0[junk] < low_conv) junk++;
 	double perc = ((double) junk)/n0;
+	if (perc > 0.2) for (p=0;p<k;p++) b[p] = NAN;
 	report[all_iters+1] = ber;
 	report[all_iters+2] = err;
 	*llow = low_conv;
