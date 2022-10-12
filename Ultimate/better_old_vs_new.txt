@@ -1,0 +1,221 @@
+1d0
+< #include <stdio.h>
+5,13d3
+< void utmvMul(unsigned int *i,unsigned int *j,float *x,long m,double *v,unsigned int k,double *res, int threads, double **space);
+< 
+< //	this function is used to sort rows sums
+< int cmpfunc (const void * a, const void * b) {
+<    if ( *(double*)a < *(double*)b ) return -1;
+<    if ( *(double*)a > *(double*)b ) return 1;
+<    return(0);
+< }
+< 
+33,35c23
+< *	perc is the proportion of low rows sums to be excluded; on exit contains the actual value used (pppp is a pointer to perc)
+< 
+< *	dp - by how much to increase perc each time
+---
+> *	low is the number of nonzeros so that rows with few nonzeros ae excluded; on exit rcontains the actual value used (llow is a pointer to low)
+40,42d27
+< 
+< *	del - if the relative error decreased by less than del for 4 consecuitive iterations we conclude that there is no convergence or it is too slow and then perc and perc1 are increased by dp and dp1 respectively
+< *
+45c30,40
+< int balance(long m,unsigned int *i,unsigned int *j,float *x, double *b, double *report,int *allIters, double tol,double *pppp, int maxiter, double del, double dp, int *totIter, int threads, unsigned int k)
+---
+> //      this function is used to sort the number of nonzeros in rows
+> int cmpfunc (const void * a, const void * b) {
+>    if ( *(int*)a < *(int*)b ) return -1;
+>    if ( *(int*)a > *(int*)b ) return 1;
+>    return(0);
+> }
+> 
+> // multithreaded matrix-vector multiplication
+> void utmvMul(unsigned int *i,unsigned int *j,float *x,long m,double *v,unsigned int k,double *res, int threads, double **space);
+> 
+> int balance(long m,unsigned int *i,unsigned int *j,float *x, double *b, double *report,int *allIters, double tol,int *llow, int maxiter, double del, int *totIter, int threads, unsigned int k, double *pppp)
+49d43
+< 	double low;
+51,56c45
+< 	double *row, *col, *r0, *s, *one, *row0, *dr, *dc;	
+< 
+< //	find the matrix dimensions
+< //	int k = 0;
+< //	for (p=0; p<m;p++) if (j[p] > k) k=j[p];
+< //	k++;
+---
+> 	double *row, *col, *s, *one, *dr, *dc;	
+61d49
+< 	row0 = (double *) malloc(k*sizeof(double));
+65d52
+< 	r0 = (double *) malloc(k*sizeof(double));
+73c60,61
+<         double perc = *pppp;
+---
+>         int low = *llow;
+> 	if (low <= 0) low = 1;
+76d63
+<         double conv_perc, div_perc;
+77a65,70
+> 	double low_conv = 1000, low_div = 0;
+> 	double *b_conv = (double *) malloc(k*sizeof(double));
+> 	double *b0 = (double *) malloc(k*sizeof(double));
+> 	int *bad_conv = (int *) malloc(k*sizeof(int));
+> 	double ber_conv;
+> 	bool yes = true;
+83c76,77
+< 	double *nz = (double *) malloc(k*sizeof(double));
+---
+> 	int *nz = (int *) malloc(k*sizeof(int));
+> 	int *nz0 = (int *) malloc(k*sizeof(int));
+89,90d82
+< //	utmvMul(i,j,x,m,one,k,row0,threads,space);
+< //	find relevant percentiles
+92,97c84,88
+<         for (p=0; p<k;p++) if (nz[p] > 0) r0[n0++] = nz[p];
+<         qsort(r0,n0,sizeof(double),cmpfunc);
+< 	double abc = n0*perc+0.5;
+<         if (abc < 0) abc = 0;
+< 	lind =  (unsigned int) abc;
+<         low = r0[lind];
+---
+>         for (p=0; p<k;p++) if (nz[p] > 0) nz0[n0++] = nz[p];
+> 	qsort(nz0,n0,sizeof(int),cmpfunc);
+> 	int junk = (int) n0*0.2;
+> 	int bound = nz0[junk];
+> 
+108d98
+< 	double err = 10.0*(1.0+tol);
+120d109
+< //printf("perc = %g; iter = %d; all_iters = %d; ber = %g\n",perc,iter,all_iters,ber);
+132a122,124
+> 		double temp1;
+> 		int numBad=0;
+> 
+135c127,129
+< 			if (fabs((double) ((b[p]-current[p])/(b[p]+current[p]))) > ber) ber = fabs((double) ((b[p]-current[p])/(b[p]+current[p])));
+---
+> 			temp1 = fabs((b[p]-current[p])/(b[p]+current[p]));
+> 			if (temp1 > ber) ber = temp1;
+> 			if (temp1 > tol) numBad++;
+139a134
+> 		for (p=0;p<k;p++) b0[p] = current[p];
+141a137
+> // if converged
+143c139,140
+<                        if (perc == 0) break;
+---
+> 			yes = true;
+> 			if (low == 1) break;
+145c142,146
+<                         conv_perc = perc;
+---
+> 			for (p=0;p<k;p++) b_conv[p] = b[p];
+> 			for (p=0;p<k;p++) bad_conv[p] = bad[p];
+> 			ber_conv = ber;
+> 			low_conv = low;
+> //  did it diverge before?
+147,148c148,149
+<                                 if (div_perc > 0.9*conv_perc) break;
+<                                 perc = 0.5*(div_perc+conv_perc);
+---
+> 				if (low_conv - low_div <= 1) break;
+>                                 low = (int) (low_conv + low_div)/2;
+150,155c151,153
+<                         else {
+<                                 perc = 0.5*conv_perc;
+<                                 if (perc < 1.0e-6) perc = 0;
+<                         }
+<                         lind =  (int)(n0*perc+0.5);
+<                         low = r0[lind];
+---
+> //  just halve low
+>                         else low = (int) low_conv/2;
+> 
+178,179c176
+< //	the scaling vector does not seen to converge well enough or the row sums erros do not decrease enough - 
+< //	increase perc and perc1 and continue
+---
+> //	the scaling vector does not seen to converge well enough - increase perc and continue
+180a178
+> //  diverged
+181a180,181
+> 		low_div = low;
+> //  did it converge before? If it converged for low+1 and diverged for low, use the last converged norm vector 
+183,184c183,207
+<                         div_perc = perc;
+<                         perc = 0.5*(div_perc+conv_perc);
+---
+> 			if (low_conv - low_div <= 1) {
+> 				for (p=0;p<k;p++) b[p] = b_conv[p];
+> 				for (p=0;p<k;p++) bad[p] = bad_conv[p];
+> 				ber = ber_conv;
+> 				break;
+> 			}
+> //  if it almost converged (only a very small fraction of errors is above tol) remove bad rows and try again
+> //  with the same low (Erez's trick)			
+> 			else if (((double) numBad)/n0 < 1.0e-5 && yes) {
+> 				for (p=0;p<k;p++) {
+> 					if (bad[p] == 1) continue;
+> 					temp1 = fabs((b[p]-b0[p])/(b[p]+b0[p]));
+> 					if (temp1 > tol) {
+> 						bad[p] = 1;
+> 						one[p] = 0;
+> 					}
+> 				}
+> 				yes = false;
+> 				goto next;
+> 			}
+> //  if neither, set the new value for low and continue
+> 			else {
+> 				low = (int) (low_div + low_conv)/2;
+> 				yes = true;
+> 			}
+185a209,223
+> //  have never converged before
+> //  Erez's trick
+> 		else if (((double) numBad)/n0 < 1.0e-5 && yes) {
+> 			for (p=0;p<k;p++) {
+> 				if (bad[p] == 1) continue;
+> 				temp1 = fabs((b[p]-b0[p])/(b[p]+b0[p]));
+> 				if (temp1 > tol) {
+> 					bad[p] = 1;
+> 					one[p] = 0;
+> 				}
+> 			}
+> 			yes = false;
+> 			goto next;
+> 		}
+> //  otherwise double the low and continue
+187,191c225,228
+<                         div_perc = perc;
+<                         perc *= 2.0;
+<                 }
+<                 lind =  (int)(n0*perc+0.5);
+<                 low = r0[lind];
+---
+> 			low = 2*low;
+> 			yes = true;
+> 		}
+> 
+202c239
+<                 ber = 10.0;
+---
+> next:		ber = 10.0;
+210c247
+< 		if (perc > 0.2) break;
+---
+> 		if (low > bound) break;
+216c253,254
+< 	err = 0;
+---
+> //  find maximum row sums error (all "good" rows should sum to 1)
+> 	double err = 0;
+220a259,263
+> //  to report statistics
+> 	junk = 0;
+> 	while (nz0[junk] < low_conv) junk++;
+> 	double perc = ((double) junk)/n0;
+> 	if (perc > 0.2) for (p=0;p<k;p++) b[p] = NAN;
+222a266
+> 	*llow = low_conv;

@@ -136,13 +136,13 @@ int balance(long m,unsigned int *i,unsigned int *j,float *x, double *b, double *
 
 // if converged
             	if (ber < tol) {
+			ber_conv = ber;
+			low_conv = low;
 			yes = true;
 			if (low == 1) break;
                         conv = true;
 			for (p=0;p<k;p++) b_conv[p] = b[p];
 			for (p=0;p<k;p++) bad_conv[p] = bad[p];
-			ber_conv = ber;
-			low_conv = low;
 //  did it diverge before?
                         if (div) {
 				if (low_conv - low_div <= 1) break;
